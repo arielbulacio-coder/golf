@@ -5,21 +5,7 @@ const CalibrationView = () => {
     const { t } = useTranslation();
     const [currentGPS, setCurrentGPS] = useState(null);
     const [selectedHole, setSelectedHole] = useState(1);
-    const [holes, setHoles] = useState([]);
-    const [status, setStatus] = useState('');
-
-    // Fetch holes from backend
-    useEffect(() => {
-        fetch('http://localhost:3001/api/holes')
-            .then(res => res.json())
-            .then(data => {
-                if (data.data) setHoles(data.data);
-            })
-            .catch(err => {
-                console.log("Backend not available, using local fallback or manual mode");
-                setStatus("Mode: Local (Cannot sync to DB)");
-            });
-    }, []);
+    const [capturedHoles, setCapturedHoles] = useState({}); // { 1: { lat, lng }, 2: ... }
 
     // Watch GPS
     useEffect(() => {
@@ -39,82 +25,90 @@ const CalibrationView = () => {
         }
     }, []);
 
-    const handleCalibrate = (type) => {
+    const handleCapture = () => {
         if (!currentGPS) {
             alert("Waiting for GPS signal...");
             return;
         }
 
-        const payload = {
-            hole_number: selectedHole,
-            type: type, // 'GREEN' or 'TEE'
-            lat: currentGPS.lat,
-            lng: currentGPS.lng,
-            accuracy: currentGPS.accuracy
-        };
+        setCapturedHoles(prev => ({
+            ...prev,
+            [selectedHole]: {
+                lat: parseFloat(currentGPS.lat.toFixed(6)),
+                lng: parseFloat(currentGPS.lng.toFixed(6))
+            }
+        }));
 
-        fetch('http://localhost:3001/api/calibrate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(data => {
-                setStatus(`Saved ${type} for Hole ${selectedHole} successfully!`);
-                // optionally refresh holes if needed
-            })
-            .catch(err => {
-                console.error(err);
-                setStatus("Error saving calibration. Is backend running?");
-            });
+        // Auto advance to next hole
+        if (selectedHole < 18) setSelectedHole(prev => prev + 1);
+    };
+
+    const generateCode = () => {
+        // Generate the exact array string for courses.js
+        // We take the existing structure concept but update coords
+        return Object.entries(capturedHoles).map(([num, coords]) => {
+            return `{ number: ${num}, ... coordinates: { lat: ${coords.lat}, lng: ${coords.lng} } },`;
+        }).join('\n');
     };
 
     return (
-        <div className="p-6 bg-white rounded-xl shadow-xl max-w-md mx-auto border-4 border-red-500">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">⚠️ Developer Calibration Device</h2>
+        <div className="p-4 bg-white rounded-xl shadow-xl max-w-md mx-auto border-4 border-blue-500">
+            <h2 className="text-xl font-bold text-blue-800 mb-2">📡 GPS Hardcode Helper</h2>
+            <p className="text-xs text-gray-500 mb-4">Walk to the green, wait for accuracy &lt; 5m, then capture. At the end, copy the Code Snippet.</p>
 
-            <div className="mb-6 bg-gray-100 p-4 rounded-lg">
-                <p className="text-sm font-bold uppercase text-gray-500">Current GPS Signal</p>
-                {currentGPS ? (
-                    <div className="font-mono text-lg">
-                        <div className="text-green-600">LAT: {currentGPS.lat.toFixed(6)}</div>
-                        <div className="text-green-600">LNG: {currentGPS.lng.toFixed(6)}</div>
-                        <div className="text-xs text-gray-500">Accuracy: {currentGPS.accuracy}m</div>
+            <div className="mb-4 bg-gray-100 p-3 rounded-lg flex justify-between items-center">
+                <div>
+                    <div className="text-xs font-bold uppercase text-gray-400">Current Position</div>
+                    {currentGPS ? (
+                        <div className="font-mono text-sm font-bold text-gray-700">
+                            {currentGPS.lat.toFixed(6)}, {currentGPS.lng.toFixed(6)}
+                        </div>
+                    ) : (
+                        <div className="animate-pulse text-red-500 text-sm">Searching GPS...</div>
+                    )}
+                </div>
+                <div className="text-right">
+                    <div className="text-xs font-bold uppercase text-gray-400">Accuracy</div>
+                    <div className={`text-lg font-bold ${currentGPS?.accuracy <= 5 ? 'text-green-600' : 'text-red-500'}`}>
+                        {currentGPS ? `±${Math.round(currentGPS.accuracy)}m` : '-'}
                     </div>
-                ) : (
-                    <div className="animate-pulse text-red-500">Searching satellites...</div>
-                )}
+                </div>
             </div>
 
-            <div className="mb-6">
-                <label className="block text-sm font-bold mb-2">Select Target Hole</label>
-                <div className="grid grid-cols-6 gap-2">
+            <div className="mb-4">
+                <label className="block text-sm font-bold mb-1">Hole to Capture</label>
+                <div className="flex flex-wrap gap-2 justify-center">
                     {Array.from({ length: 18 }, (_, i) => i + 1).map(num => (
                         <button
                             key={num}
                             onClick={() => setSelectedHole(num)}
-                            className={`p-2 rounded font-bold ${selectedHole === num ? 'bg-golf-deep text-white' : 'bg-gray-200'}`}
+                            className={`w-8 h-8 rounded text-sm font-bold border ${capturedHoles[num] ? 'bg-green-100 border-green-500 text-green-700' :
+                                    selectedHole === num ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50'
+                                }`}
                         >
                             {num}
                         </button>
                     ))}
                 </div>
-                <div className="mt-2 text-center font-bold text-xl">Hole {selectedHole}</div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-                <button
-                    onClick={() => handleCalibrate('GREEN')}
-                    className="bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 transition"
-                >
-                    🎯 Set GREEN Position
-                    <span className="block text-xs font-normal opacity-80">Stand on the center of the green</span>
-                </button>
-            </div>
+            <button
+                onClick={handleCapture}
+                disabled={!currentGPS}
+                className="w-full py-4 bg-blue-600 disabled:bg-gray-400 text-white rounded-xl font-bold shadow-lg mb-6 active:scale-95 transition"
+            >
+                📍 CAPTURE HOLE {selectedHole}
+            </button>
 
-            {status && (
-                <div className="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded text-sm font-bold text-center">
-                    {status}
+            {Object.keys(capturedHoles).length > 0 && (
+                <div className="bg-gray-900 rounded-lg p-4 text-left overflow-hidden">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs text-gray-400 font-bold uppercase">Ready to Hardcode</span>
+                        <button onClick={() => navigator.clipboard.writeText(generateCode())} className="text-xs bg-white/20 hover:bg-white/40 text-white px-2 py-1 rounded">Copy</button>
+                    </div>
+                    <pre className="text-xs text-green-400 font-mono overflow-auto max-h-48 whitespace-pre-wrap">
+                        {generateCode()}
+                    </pre>
                 </div>
             )}
         </div>
