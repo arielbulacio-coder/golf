@@ -69,6 +69,56 @@ app.post('/api/calibrate', (req, res) => {
     });
 });
 
+// --- PLAYERS API ---
+
+app.get('/api/players', (req, res) => {
+    const sql = "SELECT * FROM players";
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "success", "data": rows });
+    });
+});
+
+app.post('/api/players', (req, res) => {
+    const { name, handicap, type } = req.body;
+    const sql = "INSERT INTO players (name, handicap, type) VALUES (?,?,?)";
+    db.run(sql, [name, handicap, type], function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "success", "id": this.lastID });
+    });
+});
+
+// --- GAMES API ---
+
+app.get('/api/games', (req, res) => {
+    const sql = "SELECT * FROM games ORDER BY date DESC";
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "success", "data": rows });
+    });
+});
+
+app.post('/api/games', (req, res) => {
+    const { course_id, scores } = req.body;
+    const sql = "INSERT INTO games (course_id, scores) VALUES (?,?)";
+    db.run(sql, [course_id, JSON.stringify(scores)], function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "success", "id": this.lastID });
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

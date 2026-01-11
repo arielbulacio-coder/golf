@@ -33,6 +33,20 @@ const db = new sqlite3.Database(dbPath, (err) => {
        accuracy REAL,
        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS players (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        handicap INTEGER,
+        type TEXT
+    )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS games (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        course_id TEXT,
+        date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        scores TEXT -- JSON string of scores
+    )`);
     }
 });
 

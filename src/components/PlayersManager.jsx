@@ -1,0 +1,102 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+
+const PlayersManager = ({ onSelectPlayer }) => {
+    const { t } = useTranslation();
+    const [players, setPlayers] = useState([]);
+    const [newPlayerName, setNewPlayerName] = useState('');
+    const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
+    const [status, setStatus] = useState('');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+    useEffect(() => {
+        fetchPlayers();
+    }, []);
+
+    const fetchPlayers = () => {
+        fetch(`${API_URL}/api/players`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.data) setPlayers(data.data);
+            })
+            .catch(err => console.error("Could not fetch players", err));
+    };
+
+    const handleAddPlayer = () => {
+        if (!newPlayerName || !newPlayerHandicap) return;
+
+        const payload = {
+            name: newPlayerName,
+            handicap: parseInt(newPlayerHandicap),
+            type: parseInt(newPlayerHandicap) < 10 ? 'Professional' : 'Beginner'
+        };
+
+        fetch(`${API_URL}/api/players`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(() => {
+                setNewPlayerName('');
+                setNewPlayerHandicap('');
+                fetchPlayers();
+                setStatus('Player added!');
+                setTimeout(() => setStatus(''), 3000);
+            })
+            .catch(err => setStatus('Error adding player'));
+    };
+
+    return (
+        <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto">
+            <h2 className="text-2xl font-bold text-golf-deep mb-4">⛳ Player Directory</h2>
+
+            <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">New Player</h3>
+                <div className="flex flex-col gap-2">
+                    <input
+                        type="text"
+                        placeholder="Full Name"
+                        className="p-2 border rounded"
+                        value={newPlayerName}
+                        onChange={(e) => setNewPlayerName(e.target.value)}
+                    />
+                    <input
+                        type="number"
+                        placeholder="Handicap"
+                        className="p-2 border rounded"
+                        value={newPlayerHandicap}
+                        onChange={(e) => setNewPlayerHandicap(e.target.value)}
+                    />
+                    <button
+                        onClick={handleAddPlayer}
+                        className="bg-golf-deep text-white py-2 rounded font-bold hover:bg-golf-dark transition"
+                    >
+                        Add Player
+                    </button>
+                    {status && <p className="text-green-600 text-sm text-center">{status}</p>}
+                </div>
+            </div>
+
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">Registered Players</h3>
+                {players.length === 0 && <p className="text-gray-400 text-sm">No players found.</p>}
+                {players.map(player => (
+                    <div key={player.id} className="flex justify-between items-center p-3 bg-white border rounded hover:shadow-md transition">
+                        <div>
+                            <div className="font-bold text-gray-800">{player.name}</div>
+                            <div className="text-xs text-gray-500">HCP: {player.handicap} • {player.type}</div>
+                        </div>
+                        {onSelectPlayer && (
+                            <button onClick={() => onSelectPlayer(player)} className="text-xs bg-golf-deep text-white px-2 py-1 rounded">
+                                Select
+                            </button>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default PlayersManager;
