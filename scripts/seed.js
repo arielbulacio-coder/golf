@@ -1,4 +1,4 @@
-const db = require('../backend/database');
+import db from '../backend/database.js';
 
 const holes = [
     { number: 1, par: 4, handicap: 7, yards: 417, coordinates: { lat: -34.4442, lng: -58.9665 }, image: '/golf/assets/holes/par4.png' },
