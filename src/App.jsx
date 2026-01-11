@@ -61,6 +61,72 @@ function App() {
 
   // ... existing handlers ...
 
+  const handleScoreUpdate = (playerId, score) => {
+    setScores(prev => ({
+      ...prev,
+      [playerId]: {
+        ...prev[playerId],
+        [currentHoleNum]: score
+      }
+    }));
+  };
+
+  const handleNextHole = () => {
+    if (currentHoleNum < 18) {
+      setCurrentHoleNum(prev => prev + 1);
+    } else {
+      calculateWinner();
+      setView('results');
+    }
+  };
+
+  const handlePrevHole = () => {
+    if (currentHoleNum > 1) {
+      setCurrentHoleNum(prev => prev - 1);
+    }
+  };
+
+  const calculateWinner = () => {
+    let minScore = Infinity;
+    let currentWinner = null;
+
+    players.forEach(p => {
+      const playerTotal = Object.values(scores[p.id] || {}).reduce((a, b) => a + b, 0);
+      const netScore = playerTotal - p.handicap;
+
+      if (netScore < minScore) {
+        minScore = netScore;
+        currentWinner = p;
+      }
+    });
+    setWinner(currentWinner);
+  };
+
+  const handleSaveGame = () => {
+    if (window.location.hostname.includes('github.io')) {
+      alert("Feature available only on full server version (Caddy AI Cloud).");
+      return;
+    }
+
+    const payload = {
+      course_id: currentCourse.id,
+      scores: scores
+    };
+
+    fetch(`${API_URL}/api/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(() => alert("Game Saved Successfully!"))
+      .catch(() => alert("Failed to save game. Check connection."));
+  };
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
   return (
     <div className="min-h-screen bg-golf-light font-sans text-gray-800 flex flex-col">
       <nav className="bg-golf-deep text-white p-4 shadow-md sticky top-0 z-50">
