@@ -3,7 +3,7 @@ export const courses = [
         id: 'medal-country-club-pilar',
         name: 'Medal Country Club',
         location: 'Pilar, Buenos Aires (Ruta 34 km 54.5)',
-        logo: '/golf/assets/medal_logo.jpg',
+        logo: '/golf/assets/medal_logo.png',
         par: 72,
         tees: {
             blue: { name: 'Azul', rating: 70.5, slope: 123 },
