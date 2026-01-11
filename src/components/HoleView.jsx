@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { recommendClub, calculateDistance } from '../utils/golfLogic';
 
 const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores }) => {
+    const { t } = useTranslation();
     const [userLocation, setUserLocation] = useState(null);
     const [distance, setDistance] = useState(hole.yards); // Default to hole yards
     const [club, setClub] = useState('');
@@ -42,21 +44,21 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                 <div className="relative z-10">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <h2 className="text-3xl font-bold">Hole {hole.number}</h2>
-                            <span className="text-golf-accent font-medium uppercase tracking-wider">Par {hole.par}</span>
+                            <h2 className="text-3xl font-bold">{t('hole.title')} {hole.number}</h2>
+                            <span className="text-golf-accent font-medium uppercase tracking-wider">{t('hole.par')} {hole.par}</span>
                         </div>
                         <div className="text-right">
                             <div className="text-4xl font-bold">{distance}</div>
-                            <div className="text-xs opacity-80 uppercase tracking-widest">Yards</div>
+                            <div className="text-xs opacity-80 uppercase tracking-widest">{t('hole.yards')}</div>
                         </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center">
                         <div>
-                            <p className="text-sm opacity-80">Handicap</p>
+                            <p className="text-sm opacity-80">{t('hole.handicap')}</p>
                             <p className="font-bold">{hole.handicap}</p>
                         </div>
                         <div>
-                            <p className="text-sm opacity-80">Wind</p>
+                            <p className="text-sm opacity-80">{t('hole.wind')}</p>
                             <p className="font-bold">{windSpeed} mph {windDirection === 'headwind' ? '↓' : '↑'}</p>
                         </div>
                     </div>
@@ -70,7 +72,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                         ✨
                     </div>
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-90">AI Caddy Suggestion</p>
+                        <p className="text-xs font-bold uppercase tracking-wider opacity-90">{t('hole.aiSuggestion')}</p>
                         <p className="text-xl font-bold">{club}</p>
                     </div>
                 </div>
@@ -78,13 +80,13 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
 
             {/* Scoring */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-golf-light">
-                <h3 className="text-golf-deep font-bold mb-4 uppercase text-xs tracking-wider border-b pb-2">Scoring</h3>
+                <h3 className="text-golf-deep font-bold mb-4 uppercase text-xs tracking-wider border-b pb-2">{t('hole.scoring')}</h3>
                 <div className="space-y-4">
                     {players.map(player => (
                         <div key={player.id} className="flex justify-between items-center">
                             <div>
                                 <p className="font-bold text-gray-800">{player.name}</p>
-                                <p className="text-xs text-gray-500">{player.type} • HCP {player.handicap}</p>
+                                <p className="text-xs text-gray-500">{t(`playerType.${player.type}`)} • HCP {player.handicap}</p>
                             </div>
                             <div className="flex items-center space-x-3">
                                 <button
@@ -109,13 +111,13 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                     disabled={hole.number === 1}
                     className={`px-6 py-3 rounded-lg font-bold transition-all ${hole.number === 1 ? 'bg-gray-200 text-gray-400' : 'bg-white text-golf-deep shadow hover:shadow-md'}`}
                 >
-                    Previous
+                    {t('hole.previous')}
                 </button>
                 <button
                     onClick={onNextHole}
                     className="px-6 py-3 rounded-lg font-bold bg-golf-deep text-white shadow-lg hover:bg-golf-dark transition-all"
                 >
-                    {hole.number === 18 ? 'Finish' : 'Next Hole'}
+                    {hole.number === 18 ? t('hole.finish') : t('hole.next')}
                 </button>
             </div>
         </div>

@@ -1,12 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ScoreCard = ({ players, holes, scores, currentHole }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="overflow-x-auto bg-white rounded-lg shadow-lg border border-golf-light">
             <table className="min-w-full text-sm">
                 <thead>
                     <tr className="bg-golf-deep text-white">
-                        <th className="px-2 py-2 text-left">Hole</th>
+                        <th className="px-2 py-2 text-left">{t('hole.title')}</th>
                         {holes.map(hole => (
                             <th key={hole.number} className={`px-2 py-2 text-center ${currentHole === hole.number ? 'bg-golf-accent text-golf-deep font-bold' : ''}`}>
                                 {hole.number}
@@ -15,7 +18,7 @@ const ScoreCard = ({ players, holes, scores, currentHole }) => {
                         <th className="px-2 py-2 text-center font-bold">Total</th>
                     </tr>
                     <tr className="bg-golf/20 text-golf-dark">
-                        <th className="px-2 py-1 text-left">Par</th>
+                        <th className="px-2 py-1 text-left">{t('hole.par')}</th>
                         {holes.map(hole => (
                             <th key={`par-${hole.number}`} className="px-2 py-1 text-center">{hole.par}</th>
                         ))}
