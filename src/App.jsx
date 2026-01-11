@@ -32,6 +32,54 @@ function App() {
       .catch(err => console.log("Offline or no backend players"));
   }, []);
 
+  // Detect Course based on GPS
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude, longitude } = pos.coords;
+        console.log("Detected location:", latitude, longitude);
+
+        const calculateDist = (lat1, lon1, lat2, lon2) => {
+          const R = 6371; // km
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c;
+        };
+
+        // Identify nearest course
+        // We assume we have a list 'courses' with a central location?
+        // Currently 'courses' has holes with coordinates. We can grab the first hole or an average.
+        // Let's use the first hole of each course as reference for now, or assume 'location' field if we had coords there.
+        // Since we don't have explicit course center coords in data, let's use Hole 1.
+
+        let nearest = courses[0];
+        let minDist = Infinity;
+
+        courses.forEach(c => {
+          if (c.holes && c.holes.length > 0) {
+            const h1 = c.holes[0];
+            if (h1.coordinates) {
+              const dist = calculateDist(latitude, longitude, h1.coordinates.lat, h1.coordinates.lng);
+              if (dist < minDist) {
+                minDist = dist;
+                nearest = c;
+              }
+            }
+          }
+        });
+
+        if (minDist < 50) { // Only auto-switch if within 50km
+          setCurrentCourse(nearest);
+        }
+
+      }, (err) => console.log("GPS denied, using default course"));
+    }
+  }, []);
+
   const currentHole = currentCourse.holes.find(h => h.number === currentHoleNum);
 
   const handleScoreUpdate = (playerId, score) => {
@@ -100,9 +148,9 @@ function App() {
       <nav className="bg-golf-deep text-white p-4 shadow-md sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
-            <img src="/golf/assets/medal_logo.png" alt="Medal Country Club" className="h-12 w-12 rounded-full border-2 border-elegant-gold" />
+            {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
-              <h1 className="text-xl font-bold tracking-tight leading-none">Medal Country Club</h1>
+              <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
               <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI</p>
             </div>
           </div>
@@ -110,6 +158,7 @@ function App() {
             <button onClick={() => setView('hole')} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
             <button onClick={() => setView('scorecard')} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
             <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>Players</button>
+            <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
 
             <div className="flex space-x-1 ml-4 border-l border-white/20 pl-4">
               <button onClick={() => changeLanguage('es')} className={`text-lg hover:scale-110 transition ${i18n.language === 'es' ? 'opacity-100' : 'opacity-50'}`}>🇪🇸</button>
