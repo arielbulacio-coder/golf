@@ -148,7 +148,8 @@ app.get('/api/weather', async (req, res) => {
 });
 
 // Catch all handles any fallback for SPA routing
-app.get('*', (req, res) => {
+// Using Regex for Express 5 compatibility
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
