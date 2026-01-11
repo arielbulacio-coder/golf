@@ -7,6 +7,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     const [userLocation, setUserLocation] = useState(null);
     const [distance, setDistance] = useState(hole.yards); // Default to hole yards
     const [club, setClub] = useState('');
+    const [showPreview, setShowPreview] = useState(false);
 
     // Mock enviroment
     const windSpeed = 10;
@@ -36,31 +37,59 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
 
     return (
         <div className="flex flex-col h-full space-y-4 p-4 max-w-md mx-auto">
+            {/* Hole Preview Modal */}
+            {showPreview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={() => setShowPreview(false)}>
+                    <div className="relative max-w-lg w-full bg-white rounded-xl overflow-hidden shadow-2xl">
+                        <button className="absolute top-2 right-2 bg-white/50 rounded-full p-2 text-black hover:bg-white transition" onClick={() => setShowPreview(false)}>
+                            ✕
+                        </button>
+                        <img src={hole.image} alt={`Hole ${hole.number}`} className="w-full h-auto object-cover" />
+                        <div className="p-4 bg-golf-deep text-white">
+                            <h3 className="text-xl font-bold">{t('hole.title')} {hole.number} - {t('hole.par')} {hole.par}</h3>
+                            <p className="text-sm opacity-80">{t('hole.yards')} {hole.yards}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Hole Header */}
-            <div className="bg-golf-deep text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-bold leading-none -mr-4 -mt-4">
+            <div
+                className="bg-golf-deep text-white rounded-2xl p-6 shadow-xl relative overflow-hidden group cursor-pointer"
+                onClick={() => setShowPreview(true)}
+            >
+                <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition duration-500">
+                    <img src={hole.image} alt="Hole Background" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-golf-deep via-golf-deep/80 to-transparent z-0"></div>
+
+                <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-bold leading-none -mr-4 -mt-4 z-0">
                     {hole.number}
                 </div>
+
                 <div className="relative z-10">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <h2 className="text-3xl font-bold">{t('hole.title')} {hole.number}</h2>
-                            <span className="text-golf-accent font-medium uppercase tracking-wider">{t('hole.par')} {hole.par}</span>
+                            <h2 className="text-3xl font-bold drop-shadow-md">{t('hole.title')} {hole.number}</h2>
+                            <span className="text-golf-accent font-medium uppercase tracking-wider drop-shadow-md">{t('hole.par')} {hole.par}</span>
                         </div>
                         <div className="text-right">
-                            <div className="text-4xl font-bold">{distance}</div>
-                            <div className="text-xs opacity-80 uppercase tracking-widest">{t('hole.yards')}</div>
+                            <div className="text-4xl font-bold drop-shadow-md">{distance}</div>
+                            <div className="text-xs opacity-80 uppercase tracking-widest drop-shadow-md">{t('hole.yards')}</div>
                         </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center">
                         <div>
-                            <p className="text-sm opacity-80">{t('hole.handicap')}</p>
-                            <p className="font-bold">{hole.handicap}</p>
+                            <p className="text-sm opacity-80 drop-shadow-md">{t('hole.handicap')}</p>
+                            <p className="font-bold drop-shadow-md">{hole.handicap}</p>
                         </div>
                         <div>
-                            <p className="text-sm opacity-80">{t('hole.wind')}</p>
-                            <p className="font-bold">{windSpeed} mph {windDirection === 'headwind' ? '↓' : '↑'}</p>
+                            <p className="text-sm opacity-80 drop-shadow-md">{t('hole.wind')}</p>
+                            <p className="font-bold drop-shadow-md">{windSpeed} mph {windDirection === 'headwind' ? '↓' : '↑'}</p>
                         </div>
+                    </div>
+                    <div className="mt-2 text-center">
+                        <span className="text-xs uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm animate-pulse">Tap to View Hole</span>
                     </div>
                 </div>
             </div>
