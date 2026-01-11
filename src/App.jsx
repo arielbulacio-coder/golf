@@ -4,6 +4,8 @@ import { courses, players as initialPlayers } from './data/courses';
 import HoleView from './components/HoleView';
 import ScoreCard from './components/ScoreCard';
 import WeatherView from './components/WeatherView';
+import CalibrationView from './components/CalibrationView';
+import PlayersManager from './components/PlayersManager';
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -16,6 +18,17 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+  // Minimal Console Overlay for Mobile Debugging
+  const [logs, setLogs] = useState([]);
+  useEffect(() => {
+    const oldLog = console.log;
+    console.log = (...args) => {
+      setLogs(prev => [...prev.slice(-4), args.join(' ')]);
+      oldLog(...args);
+    };
+    console.log("App Component Mounted");
+  }, []);
   // Load players from backend on start
   useEffect(() => {
     if (window.location.hostname.includes('github.io')) {
@@ -135,7 +148,7 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.4 (Cache Fixed)</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.5</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center">
@@ -243,6 +256,9 @@ function App() {
         <p className="text-sm text-golf-deep font-medium">
           {t('credits.developer')}, {t('credits.rights')}
         </p>
+        <div className="text-xs text-left mt-2 opacity-50 font-mono bg-black/5 p-2 rounded">
+          {logs.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
       </footer>
     </div>
   );
