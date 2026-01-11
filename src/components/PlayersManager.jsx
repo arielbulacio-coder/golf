@@ -49,21 +49,21 @@ const PlayersManager = ({ onSelectPlayer }) => {
 
     return (
         <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto">
-            <h2 className="text-2xl font-bold text-golf-deep mb-4">⛳ Player Directory</h2>
+            <h2 className="text-2xl font-bold text-golf-deep mb-4">⛳ {t('players.title')}</h2>
 
             <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">New Player</h3>
+                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">{t('players.newPlayer')}</h3>
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        placeholder="Full Name"
+                        placeholder={t('players.fullName')}
                         className="p-2 border rounded"
                         value={newPlayerName}
                         onChange={(e) => setNewPlayerName(e.target.value)}
                     />
                     <input
                         type="number"
-                        placeholder="Handicap"
+                        placeholder={t('hole.handicap')}
                         className="p-2 border rounded"
                         value={newPlayerHandicap}
                         onChange={(e) => setNewPlayerHandicap(e.target.value)}
@@ -72,24 +72,24 @@ const PlayersManager = ({ onSelectPlayer }) => {
                         onClick={handleAddPlayer}
                         className="bg-golf-deep text-white py-2 rounded font-bold hover:bg-golf-dark transition"
                     >
-                        Add Player
+                        {t('players.addPlayer')}
                     </button>
                     {status && <p className="text-green-600 text-sm text-center">{status}</p>}
                 </div>
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto">
-                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">Registered Players</h3>
-                {players.length === 0 && <p className="text-gray-400 text-sm">No players found.</p>}
+                <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">{t('players.registeredPlayers')}</h3>
+                {players.length === 0 && <p className="text-gray-400 text-sm">{t('players.noPlayers')}</p>}
                 {players.map(player => (
                     <div key={player.id} className="flex justify-between items-center p-3 bg-white border rounded hover:shadow-md transition">
                         <div>
                             <div className="font-bold text-gray-800">{player.name}</div>
-                            <div className="text-xs text-gray-500">HCP: {player.handicap} • {player.type}</div>
+                            <div className="text-xs text-gray-500">HCP: {player.handicap} • {t(`playerType.${player.type}`, player.type)}</div>
                         </div>
                         {onSelectPlayer && (
                             <button onClick={() => onSelectPlayer(player)} className="text-xs bg-golf-deep text-white px-2 py-1 rounded">
-                                Select
+                                {t('players.select')}
                             </button>
                         )}
                     </div>

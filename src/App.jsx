@@ -157,7 +157,7 @@ function App() {
           <div className="space-x-4 text-sm font-medium flex items-center">
             <button onClick={() => setView('hole')} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
             <button onClick={() => setView('scorecard')} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
-            <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>Players</button>
+            <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
             <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
 
             <div className="flex space-x-1 ml-4 border-l border-white/20 pl-4">
@@ -195,7 +195,7 @@ function App() {
                 onClick={handleSaveGame}
                 className="bg-elegant-gold text-golf-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-yellow-400 transition"
               >
-                💾 Save Game
+                💾 {t('scorecard.saveGame')}
               </button>
             </div>
           </div>
@@ -237,7 +237,7 @@ function App() {
               <p className="text-sm">© {t('credits.rights')}</p>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-100">
-              <button onClick={() => setView('calibrate')} className="text-xs text-gray-300 hover:text-red-500 transition">Dev Mode</button>
+              <button onClick={() => setView('calibrate')} className="text-xs text-gray-300 hover:text-red-500 transition">{t('credits.devMode')}</button>
             </div>
           </div>
         )}

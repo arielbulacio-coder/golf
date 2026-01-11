@@ -8,7 +8,8 @@ const resources = {
             nav: {
                 play: "Jugar",
                 scorecard: "Tarjeta",
-                credits: "Créditos"
+                credits: "Créditos",
+                players: "Jugadores"
             },
             hole: {
                 title: "Hoyo",
@@ -24,16 +25,29 @@ const resources = {
                 headwind: "Viento en Contra",
                 tailwind: "Viento a Favor"
             },
+            scorecard: {
+                saveGame: "Guardar Juego"
+            },
             results: {
                 winner: "¡Ganador!",
                 basedOn: "Basado en Score Neto",
                 viewScorecard: "Ver Tarjeta Completa"
             },
+            players: {
+                title: "Directorio de Jugadores",
+                newPlayer: "Nuevo Jugador",
+                fullName: "Nombre Completo",
+                addPlayer: "Agregar Jugador",
+                registeredPlayers: "Jugadores Registrados",
+                noPlayers: "No se encontraron jugadores.",
+                select: "Seleccionar"
+            },
             credits: {
                 title: "Acerca de Golf Caddy AI",
                 description: "Esta aplicación es tu compañero inteligente de golf. Utiliza GPS para calcular distancias precisas al green, analiza las condiciones del viento y utiliza Inteligencia Artificial para sugerirte el palo ideal para cada golpe. Lleva el conteo de golpes de múltiples jugadores y calcula el ganador final considerando el hándicap.",
                 developer: "Desarrollo por Ariel Bulacio año 2026",
-                rights: "todos los derechos reservados"
+                rights: "todos los derechos reservados",
+                devMode: "Modo Desarrollador"
             },
             playerType: {
                 Beginner: "Principiante",
@@ -47,7 +61,8 @@ const resources = {
             nav: {
                 play: "Play",
                 scorecard: "Scorecard",
-                credits: "Credits"
+                credits: "Credits",
+                players: "Players"
             },
             hole: {
                 title: "Hole",
@@ -63,16 +78,29 @@ const resources = {
                 headwind: "Headwind",
                 tailwind: "Tailwind"
             },
+            scorecard: {
+                saveGame: "Save Game"
+            },
             results: {
                 winner: "Winner!",
                 basedOn: "Based on Net Score",
                 viewScorecard: "View Full Scorecard"
             },
+            players: {
+                title: "Player Directory",
+                newPlayer: "New Player",
+                fullName: "Full Name",
+                addPlayer: "Add Player",
+                registeredPlayers: "Registered Players",
+                noPlayers: "No players found.",
+                select: "Select"
+            },
             credits: {
                 title: "About Golf Caddy AI",
                 description: "This application is your intelligent golf companion. It uses GPS to calculate accurate distances to the green, analyzes wind conditions, and uses Artificial Intelligence to suggest the ideal club for each shot. It tracks strokes for multiple players and calculates the final winner considering handicap.",
                 developer: "Developed by Ariel Bulacio year 2026",
-                rights: "all rights reserved"
+                rights: "all rights reserved",
+                devMode: "Dev Mode"
             },
             playerType: {
                 Beginner: "Beginner",
@@ -86,7 +114,8 @@ const resources = {
             nav: {
                 play: "玩",
                 scorecard: "记分卡",
-                credits: "致谢"
+                credits: "致谢",
+                players: "球员"
             },
             hole: {
                 title: "洞",
@@ -102,16 +131,29 @@ const resources = {
                 headwind: "顶风",
                 tailwind: "顺风"
             },
+            scorecard: {
+                saveGame: "保存游戏"
+            },
             results: {
                 winner: "获胜者!",
                 basedOn: "基于净分",
                 viewScorecard: "查看完整记分卡"
             },
+            players: {
+                title: "球员名录",
+                newPlayer: "新球员",
+                fullName: "全名",
+                addPlayer: "添加球员",
+                registeredPlayers: "注册球员",
+                noPlayers: "未找到球员。",
+                select: "选择"
+            },
             credits: {
                 title: "关于高尔夫球童 AI",
                 description: "此应用程序是您的智能高尔夫伴侣。它使用 GPS 计算到果岭的精确距离，分析风况，并利用人工智能为每次击球建议理想的球杆。它跟踪多名球员的杆数，并考虑差点计算最终获胜者。",
                 developer: "由 Ariel Bulacio 开发，2026 年",
-                rights: "版权所有"
+                rights: "版权所有",
+                devMode: "开发者模式"
             },
             playerType: {
                 Beginner: "初学者",
