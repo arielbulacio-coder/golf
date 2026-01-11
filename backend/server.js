@@ -14,13 +14,10 @@ const PORT = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve static files from the React app under /golf
+// Serve static files from the React app
+// Allow serving from root AND from /golf/ path for compatibility
+app.use(express.static(path.join(__dirname, '../dist')));
 app.use('/golf', express.static(path.join(__dirname, '../dist')));
-
-// Redirect root to /golf
-app.get('/', (req, res) => {
-    res.redirect('/golf/');
-});
 
 // Get all holes
 app.get('/api/holes', (req, res) => {
@@ -150,7 +147,8 @@ app.get('/api/weather', async (req, res) => {
     }
 });
 
-app.get('/golf/*', (req, res) => {
+// Catch all handles any fallback for SPA routing
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
