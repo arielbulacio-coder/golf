@@ -6,6 +6,22 @@ const CalibrationView = () => {
     const [currentGPS, setCurrentGPS] = useState(null);
     const [selectedHole, setSelectedHole] = useState(1);
     const [capturedHoles, setCapturedHoles] = useState({}); // { 1: { lat, lng }, 2: ... }
+    const [status, setStatus] = useState('');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+    // Fetch holes from backend (assuming this is the intended use for API_URL, though the original component doesn't use fetched holes)
+    // This useEffect block is incomplete in the provided instruction, so I'm adding a basic structure.
+    // If you intended to use the fetched holes, you would need to add state to store them and logic to process them.
+    useEffect(() => {
+        // Example of fetching data, adjust as needed for your application's logic
+        // For now, it just logs a message to show it's being called.
+        // If you want to actually fetch and use holes, you'd need a state variable for them.
+        // fetch(`${API_URL}/api/holes`)
+        //   .then(res => res.json())
+        //   .then(data => console.log("Fetched holes:", data))
+        //   .catch(error => console.error("Error fetching holes:", error));
+        console.log(`API_URL set to: ${API_URL}`);
+    }, [API_URL]);
 
     // Watch GPS
     useEffect(() => {
@@ -83,7 +99,7 @@ const CalibrationView = () => {
                             key={num}
                             onClick={() => setSelectedHole(num)}
                             className={`w-8 h-8 rounded text-sm font-bold border ${capturedHoles[num] ? 'bg-green-100 border-green-500 text-green-700' :
-                                    selectedHole === num ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50'
+                                selectedHole === num ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50'
                                 }`}
                         >
                             {num}
@@ -99,6 +115,10 @@ const CalibrationView = () => {
             >
                 📍 CAPTURE HOLE {selectedHole}
             </button>
+
+            {status && (
+                <p className="text-sm text-center mb-4">{status}</p>
+            )}
 
             {Object.keys(capturedHoles).length > 0 && (
                 <div className="bg-gray-900 rounded-lg p-4 text-left overflow-hidden">
