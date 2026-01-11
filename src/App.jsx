@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { courses, players as initialPlayers } from './data/courses';
 import HoleView from './components/HoleView';
 import ScoreCard from './components/ScoreCard';
+import CalibrationView from './components/CalibrationView';
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -132,6 +133,15 @@ function App() {
               <p className="text-golf-deep font-bold text-lg">{t('credits.developer')}</p>
               <p className="text-sm">© {t('credits.rights')}</p>
             </div>
+            <div className="mt-8 pt-8 border-t border-gray-100">
+              <button onClick={() => setView('calibrate')} className="text-xs text-gray-300 hover:text-red-500 transition">Dev Mode</button>
+            </div>
+          </div>
+        )}
+
+        {view === 'calibrate' && (
+          <div className="animate-fade-in-up">
+            <CalibrationView />
           </div>
         )}
       </main>
