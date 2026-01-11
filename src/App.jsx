@@ -16,9 +16,14 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
   // Load players from backend on start
   useEffect(() => {
+    if (window.location.hostname.includes('github.io')) {
+      console.log("GitHub mode: Skipping backend fetch");
+      setPlayers(initialPlayers);
+      return;
+    }
+
     fetch(`${API_URL}/api/players`)
       .then(res => res.json())
       .then(data => {
@@ -31,6 +36,8 @@ function App() {
 
   // Fetch Weather based on Course Location
   useEffect(() => {
+    if (window.location.hostname.includes('github.io')) return;
+
     // We try to get lat/lng from the first hole of the current course to get approximate location
     // Or hardcode Medal's location if we know it: -34.4442, -58.9665
     // Better to use the course ID logic or specific property
@@ -62,7 +69,7 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.1</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.2</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center">
