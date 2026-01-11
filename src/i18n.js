@@ -33,6 +33,12 @@ const resources = {
                 basedOn: "Basado en Score Neto",
                 viewScorecard: "Ver Tarjeta Completa"
             },
+            weather: {
+                current: "Clima Actual",
+                forecast: "Pronóstico Extendido",
+                max: "Máx",
+                min: "Mín"
+            },
             players: {
                 title: "Directorio de Jugadores",
                 newPlayer: "Nuevo Jugador",
@@ -86,6 +92,12 @@ const resources = {
                 basedOn: "Based on Net Score",
                 viewScorecard: "View Full Scorecard"
             },
+            weather: {
+                current: "Current Weather",
+                forecast: "Extended Forecast",
+                max: "Max",
+                min: "Min"
+            },
             players: {
                 title: "Player Directory",
                 newPlayer: "New Player",
@@ -138,6 +150,12 @@ const resources = {
                 winner: "获胜者!",
                 basedOn: "基于净分",
                 viewScorecard: "查看完整记分卡"
+            },
+            weather: {
+                current: "当前天气",
+                forecast: "天气预报",
+                max: "最高",
+                min: "最低"
             },
             players: {
                 title: "球员名录",

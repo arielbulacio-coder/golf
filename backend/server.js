@@ -119,6 +119,24 @@ app.post('/api/games', (req, res) => {
     });
 });
 
+// --- WEATHER API ---
+app.get('/api/weather', async (req, res) => {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+        return res.status(400).json({ error: "Missing lat/lng" });
+    }
+
+    try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+        const response = await fetch(url);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error("Weather fetch error:", error);
+        res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

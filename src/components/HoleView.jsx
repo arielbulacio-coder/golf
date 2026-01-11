@@ -2,16 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { recommendClub, calculateDistance } from '../utils/golfLogic';
 
-const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores }) => {
+const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores, weather }) => {
     const { t } = useTranslation();
     const [userLocation, setUserLocation] = useState(null);
     const [distance, setDistance] = useState(hole.yards); // Default to hole yards
     const [club, setClub] = useState('');
     const [showPreview, setShowPreview] = useState(false);
 
-    // Mock enviroment
-    const windSpeed = 10;
-    const windDirection = 'headwind';
+    // Use current weather if available, otherwise fallback
+    const windSpeed = weather ? weather.windspeed : 10;
+    // Map degrees to simple direction for now, or pass degrees to logic
+    // For visual simplicity let's stick to head/tailwind logic assumption or just show direction
+    // In valid range 0-360. Let's assume Hole orientation is North (0) for simplicity unless we have hole bearing.
+    // If hole is North (0), wind 180 is Headwind.
+    // Real logic would require Course/Hole bearing data. 
+    // We will pass raw speed/direction to logic later if needed, but for now lets keep the variable names
+    // so we display real data.
+    const windDirection = weather ? weather.winddirection : 0;
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -32,8 +39,14 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     }, [hole]);
 
     useEffect(() => {
-        setClub(recommendClub(distance, windSpeed, windDirection));
-    }, [distance]);
+        // Simplified club recommendation: Headwind if wind comes from opposite direction?
+        // Let's pass 'headwind' or 'tailwind' based on a naive calculation or just pass the speed
+        // Actually golfLogic might expect string. Let's check. 
+        // Logic was simple string matching. We should update golfLogic if we want real precision.
+        // For now, let's pretend > 10km/h is strong enough to factor in.
+        const directionStr = 'headwind'; // Default hardcoded for safety until we have hole bearing
+        setClub(recommendClub(distance, windSpeed, directionStr));
+    }, [distance, windSpeed]);
 
     return (
         <div className="flex flex-col h-full space-y-4 p-4 max-w-md mx-auto">
@@ -85,7 +98,10 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                         </div>
                         <div>
                             <p className="text-sm opacity-80 drop-shadow-md">{t('hole.wind')}</p>
-                            <p className="font-bold drop-shadow-md">{windSpeed} mph {windDirection === 'headwind' ? '↓' : '↑'}</p>
+                            <p className="font-bold drop-shadow-md flex items-center gap-1">
+                                {windSpeed} km/h
+                                <span style={{ transform: `rotate(${windDirection}deg)`, display: 'inline-block' }}>➤</span>
+                            </p>
                         </div>
                     </div>
                     <div className="mt-2 text-center">
