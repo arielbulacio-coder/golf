@@ -81,6 +81,8 @@ app.post('/api/calibrate', (req, res) => {
 
 // --- PLAYERS API ---
 
+// --- PLAYERS API ---
+
 app.get('/api/players', (req, res) => {
     const sql = "SELECT * FROM players";
     db.all(sql, [], (err, rows) => {
@@ -101,6 +103,17 @@ app.post('/api/players', (req, res) => {
             return;
         }
         res.json({ "message": "success", "id": this.lastID });
+    });
+});
+
+app.delete('/api/players/:id', (req, res) => {
+    const sql = "DELETE FROM players WHERE id = ?";
+    db.run(sql, req.params.id, function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "deleted", changes: this.changes });
     });
 });
 
@@ -126,6 +139,17 @@ app.post('/api/games', (req, res) => {
             return;
         }
         res.json({ "message": "success", "id": this.lastID });
+    });
+});
+
+app.delete('/api/games/:id', (req, res) => {
+    const sql = "DELETE FROM games WHERE id = ?";
+    db.run(sql, req.params.id, function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "deleted", changes: this.changes });
     });
 });
 
