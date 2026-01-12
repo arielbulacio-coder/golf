@@ -17,6 +17,12 @@ const resources = {
                 noGames: "No hay partidas guardadas.",
                 confirmDelete: "¿Seguro que deseas eliminar esta partida?"
             },
+            scoring: {
+                title: "Modo de Juego",
+                strokeNet: "Stroke Play (Neto)",
+                stableford: "Stableford",
+                scratch: "Gross (Scratch)"
+            },
             players: {
                 title: "Directorio de Jugadores",
                 newPlayer: "Nuevo Jugador",

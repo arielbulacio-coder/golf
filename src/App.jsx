@@ -17,6 +17,7 @@ function App() {
   const [view, setView] = useState('hole');
   const [winner, setWinner] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
+  const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -89,16 +90,54 @@ function App() {
   };
 
   const calculateWinner = () => {
-    let minScore = Infinity;
+    let bestScore = scoringType === 'stableford' ? -Infinity : Infinity;
     let currentWinner = null;
 
     players.forEach(p => {
-      const playerTotal = Object.values(scores[p.id] || {}).reduce((a, b) => a + b, 0);
-      const netScore = playerTotal - p.handicap;
+      let total = 0;
 
-      if (netScore < minScore) {
-        minScore = netScore;
-        currentWinner = p;
+      // Calculate total based on scoring type
+      if (scoringType === 'scratch') {
+        total = Object.values(scores[p.id] || {}).reduce((a, b) => a + b, 0);
+        if (total < bestScore) {
+          bestScore = total;
+          currentWinner = p;
+        }
+      } else if (scoringType === 'stroke_net') {
+        const gross = Object.values(scores[p.id] || {}).reduce((a, b) => a + b, 0);
+        total = gross - p.handicap;
+        if (total < bestScore) {
+          bestScore = total;
+          currentWinner = p;
+        }
+      } else if (scoringType === 'stableford') {
+        // Simple Stableford calculation
+        // For each hole:
+        // Net Score = Stroke - (Handicap Strokes for that hole)
+        // Points = Par + 2 - Net Score
+        // We need hole par data here.
+        // Simplified: We will use global handicap/18 for now or just Net Diff from Par
+        // Let's use a simplified version: (Par of hole - (Score - Handicap/18)) + 2
+        // Actually, without hole-by-hole handicap difficulty (stroke index), we can only approximate.
+        // We will assume Handicap is distributed evenly for this demo or just use Net Difference.
+
+        const pScores = scores[p.id] || {};
+        let points = 0;
+        Object.keys(pScores).forEach(holeNum => {
+          const hole = currentCourse.holes.find(h => h.number === parseInt(holeNum));
+          if (hole) {
+            const strokes = pScores[holeNum];
+            const freeStrokes = Math.round(p.handicap / 18); // Simplified distribution
+            const netStrokes = strokes - freeStrokes;
+            const holePoints = (hole.par - netStrokes) + 2;
+            if (holePoints > 0) points += holePoints;
+          }
+        });
+        total = points;
+        if (total > bestScore) { // Higher is better for Stableford
+          bestScore = total;
+          currentWinner = p;
+        }
       }
     });
     setWinner(currentWinner);
@@ -200,7 +239,10 @@ function App() {
 
         {view === 'players' && (
           <div className="animate-fade-in-up">
-            <PlayersManager />
+            <PlayersManager
+              scoringType={scoringType}
+              onSetScoringType={setScoringType}
+            />
           </div>
         )}
 

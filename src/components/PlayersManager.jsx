@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const PlayersManager = ({ onSelectPlayer }) => {
+const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
     const { t } = useTranslation();
     const [players, setPlayers] = useState([]);
     const [newPlayerName, setNewPlayerName] = useState('');
@@ -64,6 +64,32 @@ const PlayersManager = ({ onSelectPlayer }) => {
     return (
         <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto">
             <h2 className="text-2xl font-bold text-golf-deep mb-4">⛳ {t('players.title')}</h2>
+
+            {onSetScoringType && (
+                <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-sm font-bold uppercase text-blue-500 mb-2">{t('scoring.title')}</h3>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => onSetScoringType('stroke_net')}
+                            className={`flex-1 py-2 text-xs font-bold rounded ${scoringType === 'stroke_net' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
+                        >
+                            {t('scoring.strokeNet')}
+                        </button>
+                        <button
+                            onClick={() => onSetScoringType('stableford')}
+                            className={`flex-1 py-2 text-xs font-bold rounded ${scoringType === 'stableford' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
+                        >
+                            {t('scoring.stableford')}
+                        </button>
+                        <button
+                            onClick={() => onSetScoringType('scratch')}
+                            className={`flex-1 py-2 text-xs font-bold rounded ${scoringType === 'scratch' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
+                        >
+                            {t('scoring.scratch')}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 className="text-sm font-bold uppercase text-gray-500 mb-2">{t('players.newPlayer')}</h3>
