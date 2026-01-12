@@ -20,22 +20,46 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     // so we display real data.
     const windDirection = weather ? weather.winddirection : 0;
 
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setUserLocation({ lat: latitude, lng: longitude });
+    const [locationError, setLocationError] = useState(null);
 
-                    if (hole.coordinates) {
-                        const dist = calculateDistance(latitude, longitude, hole.coordinates.lat, hole.coordinates.lng);
-                        setDistance(dist);
-                    }
-                },
-                (error) => console.log(error),
-                { enableHighAccuracy: true }
-            );
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            setLocationError("Geolocation is not supported by your browser.");
+            return;
         }
+
+        // Check for Secure Context (HTTPS) which is required for Geolocation on modern browsers
+        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+            setLocationError("GPS requires HTTPS. 'Full Cloud' mode on HTTP cannot access location due to browser security.");
+            return;
+        }
+
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setUserLocation({ lat: latitude, lng: longitude });
+                setLocationError(null);
+
+                if (hole.coordinates) {
+                    const dist = calculateDistance(latitude, longitude, hole.coordinates.lat, hole.coordinates.lng);
+                    setDistance(dist);
+                }
+            },
+            (error) => {
+                console.error(error);
+                let msg = "GPS Error: ";
+                switch (error.code) {
+                    case error.PERMISSION_DENIED: msg += "Permission Denied"; break;
+                    case error.POSITION_UNAVAILABLE: msg += "Position Unavailable"; break;
+                    case error.TIMEOUT: msg += "Timeout"; break;
+                    default: msg += error.message;
+                }
+                setLocationError(msg);
+            },
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+        );
+
+        return () => navigator.geolocation.clearWatch(watchId);
     }, [hole]);
 
     useEffect(() => {
@@ -67,6 +91,12 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
             )}
 
             {/* Hole Header */}
+            {locationError && (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded text-xs" role="alert">
+                    <p className="font-bold">GPS Alert</p>
+                    <p>{locationError}</p>
+                </div>
+            )}
             <div
                 className="bg-golf-deep text-white rounded-2xl p-6 shadow-xl relative overflow-hidden group cursor-pointer"
                 onClick={() => setShowPreview(true)}
