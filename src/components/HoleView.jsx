@@ -135,12 +135,12 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                             </div>
                             <div className="flex items-center space-x-3">
                                 <button
-                                    className="w-8 h-8 rounded-full bg-gray-100 text-golf-dark hover:bg-gray-200 flex items-center justify-center font-bold"
+                                    className="w-10 h-10 rounded-full bg-gray-200 text-golf-dark hover:bg-gray-300 flex items-center justify-center text-xl font-bold shadow-sm active:scale-95 transition"
                                     onClick={() => onUpdateScore(player.id, (scores[player.id]?.[hole.number] || hole.par) - 1)}
                                 >-</button>
-                                <span className="w-8 text-center font-bold text-xl">{scores[player.id]?.[hole.number] || '-'}</span>
+                                <span className="w-8 text-center font-bold text-2xl text-golf-deep">{scores[player.id]?.[hole.number] || '-'}</span>
                                 <button
-                                    className="w-8 h-8 rounded-full bg-golf-DEFAULT text-white hover:bg-golf-dark flex items-center justify-center font-bold"
+                                    className="w-10 h-10 rounded-full bg-green-600 text-white hover:bg-green-700 flex items-center justify-center text-xl font-bold shadow-sm active:scale-95 transition"
                                     onClick={() => onUpdateScore(player.id, (scores[player.id]?.[hole.number] || hole.par) + 1)}
                                 >+</button>
                             </div>
