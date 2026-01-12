@@ -47,6 +47,20 @@ const PlayersManager = ({ onSelectPlayer }) => {
             .catch(err => setStatus('Error adding player'));
     };
 
+    const handleDeletePlayer = (id) => {
+        if (!window.confirm(t('players.confirmDelete'))) return;
+
+        fetch(`${API_URL}/api/players/${id}`, {
+            method: 'DELETE'
+        })
+            .then(() => {
+                fetchPlayers();
+                setStatus('Player deleted');
+                setTimeout(() => setStatus(''), 3000);
+            })
+            .catch(err => setStatus('Error deleting player'));
+    };
+
     return (
         <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto">
             <h2 className="text-2xl font-bold text-golf-deep mb-4">⛳ {t('players.title')}</h2>
@@ -87,11 +101,16 @@ const PlayersManager = ({ onSelectPlayer }) => {
                             <div className="font-bold text-gray-800">{player.name}</div>
                             <div className="text-xs text-gray-500">HCP: {player.handicap} • {t(`playerType.${player.type}`, player.type)}</div>
                         </div>
-                        {onSelectPlayer && (
-                            <button onClick={() => onSelectPlayer(player)} className="text-xs bg-golf-deep text-white px-2 py-1 rounded">
-                                {t('players.select')}
+                        <div className="flex gap-2">
+                            {onSelectPlayer && (
+                                <button onClick={() => onSelectPlayer(player)} className="text-xs bg-golf-deep text-white px-2 py-1 rounded">
+                                    {t('players.select')}
+                                </button>
+                            )}
+                            <button onClick={() => handleDeletePlayer(player.id)} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200">
+                                🗑️
                             </button>
-                        )}
+                        </div>
                     </div>
                 ))}
             </div>

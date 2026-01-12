@@ -6,6 +6,7 @@ import ScoreCard from './components/ScoreCard';
 import WeatherView from './components/WeatherView';
 import CalibrationView from './components/CalibrationView';
 import PlayersManager from './components/PlayersManager';
+import GamesHistory from './components/GamesHistory';
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -19,20 +20,9 @@ function App() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-  // Minimal Console Overlay for Mobile Debugging
-  const [logs, setLogs] = useState([]);
-  useEffect(() => {
-    const oldLog = console.log;
-    console.log = (...args) => {
-      setLogs(prev => [...prev.slice(-4), args.join(' ')]);
-      oldLog(...args);
-    };
-    console.log("App Component Mounted");
-  }, []);
   // Load players from backend on start
   useEffect(() => {
     if (window.location.hostname.includes('github.io')) {
-      console.log("GitHub mode: Skipping backend fetch");
       setPlayers(initialPlayers);
       return;
     }
@@ -60,7 +50,6 @@ function App() {
     fetch(`${API_URL}/api/weather?lat=${lat}&lng=${lng}`)
       .then(res => res.json())
       .then(data => {
-        console.log("Weather fetched:", data);
         setWeatherData(data);
       })
       .catch(err => console.error("Weather fetch failed", err));
@@ -148,13 +137,14 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.6 (PWA On)</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v2.7</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center">
             <button onClick={() => setView('hole')} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
             <button onClick={() => setView('scorecard')} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
             <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
+            <button onClick={() => setView('history')} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
             <button onClick={() => setView('weather')} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
             <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
 
@@ -180,6 +170,10 @@ function App() {
 
         {view === 'weather' && (
           <WeatherView weather={weatherData} />
+        )}
+
+        {view === 'history' && (
+          <GamesHistory />
         )}
 
         {/* ... other views ... */}
@@ -256,9 +250,6 @@ function App() {
         <p className="text-sm text-golf-deep font-medium">
           {t('credits.developer')}, {t('credits.rights')}
         </p>
-        <div className="text-xs text-left mt-2 opacity-50 font-mono bg-black/5 p-2 rounded">
-          {logs.map((l, i) => <div key={i}>{l}</div>)}
-        </div>
       </footer>
     </div>
   );

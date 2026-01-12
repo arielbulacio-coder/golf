@@ -9,7 +9,23 @@ const resources = {
                 play: "Jugar",
                 scorecard: "Tarjeta",
                 credits: "Créditos",
-                players: "Jugadores"
+                players: "Jugadores",
+                history: "Historial"
+            },
+            history: {
+                title: "Historial de Partidas",
+                noGames: "No hay partidas guardadas.",
+                confirmDelete: "¿Seguro que deseas eliminar esta partida?"
+            },
+            players: {
+                title: "Directorio de Jugadores",
+                newPlayer: "Nuevo Jugador",
+                fullName: "Nombre Completo",
+                addPlayer: "Agregar Jugador",
+                registeredPlayers: "Jugadores Registrados",
+                noPlayers: "No se encontraron jugadores.",
+                select: "Seleccionar",
+                confirmDelete: "¿Seguro que deseas eliminar a este jugador?"
             },
             hole: {
                 title: "Hoyo",
@@ -38,15 +54,6 @@ const resources = {
                 forecast: "Pronóstico Extendido",
                 max: "Máx",
                 min: "Mín"
-            },
-            players: {
-                title: "Directorio de Jugadores",
-                newPlayer: "Nuevo Jugador",
-                fullName: "Nombre Completo",
-                addPlayer: "Agregar Jugador",
-                registeredPlayers: "Jugadores Registrados",
-                noPlayers: "No se encontraron jugadores.",
-                select: "Seleccionar"
             },
             credits: {
                 title: "Acerca de Golf Caddy AI",
