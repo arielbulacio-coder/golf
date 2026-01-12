@@ -37,6 +37,11 @@
       return false;
     };
     window.onunhandledrejection = function (event) {
+      // Ignore Service Worker errors (common with self-signed certs)
+      if (event.reason && (event.reason.toString().includes('ServiceWorker') || event.reason.toString().includes('Failed to register'))) {
+        console.warn("Service Worker registration failed (expected on self-signed HTTPS):", event.reason);
+        return;
+      }
       var overlay = document.getElementById('error-overlay');
       if (overlay) {
         overlay.style.display = 'block';
