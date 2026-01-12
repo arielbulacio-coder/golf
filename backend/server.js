@@ -177,6 +177,28 @@ app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+import https from 'https';
+import fs from 'fs';
+
+// Check for SSL Certificates
+let server;
+try {
+    const keyPath = path.join(__dirname, 'key.pem');
+    const certPath = path.join(__dirname, 'cert.pem');
+
+    if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+        const key = fs.readFileSync(keyPath);
+        const cert = fs.readFileSync(certPath);
+        server = https.createServer({ key, cert }, app);
+        console.log("🔒 SSL Certificates found. Starting in HTTPS mode.");
+    } else {
+        throw new Error("No certs");
+    }
+} catch (e) {
+    console.log("⚠️ No SSL Certificates found (or error). Starting in HTTP mode.");
+    server = app;
+}
+
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

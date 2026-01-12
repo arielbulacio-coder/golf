@@ -19,7 +19,14 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  // Determine API_URL dynamically
+  let API_URL = 'http://localhost:3001'; // Default for local dev
+  if (window.location.hostname.includes('github.io')) {
+    API_URL = import.meta.env.VITE_API_URL || 'http://35.192.208.127:3001';
+  } else if (window.location.hostname !== 'localhost') {
+    // If served from the backend (IP address), use relative path to respect protocol (HTTP/HTTPS)
+    API_URL = '';
+  }
 
   // Load players from backend on start
   useEffect(() => {
