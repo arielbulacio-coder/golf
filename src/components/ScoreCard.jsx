@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-const ScoreCard = ({ players, holes, scores, currentHole }) => {
+const ScoreCard = ({ players, holes, scores, currentHole, scoringType }) => {
     const { t } = useTranslation();
 
     return (
@@ -28,7 +28,28 @@ const ScoreCard = ({ players, holes, scores, currentHole }) => {
                 <tbody>
                     {players.map(player => {
                         const playerScores = scores[player.id] || {};
-                        const totalScore = Object.values(playerScores).reduce((a, b) => a + (b || 0), 0);
+
+                        let displayTotal = 0;
+
+                        if (scoringType === 'stableford') {
+                            // Stableford Logic for Display
+                            holes.forEach(hole => {
+                                const strokes = playerScores[hole.number];
+                                if (strokes) {
+                                    // Simplified Stableford (same logic as App.jsx)
+                                    const freeStrokes = Math.round(player.handicap / 18);
+                                    const netStrokes = strokes - freeStrokes;
+                                    const points = Math.max(0, (hole.par - netStrokes) + 2);
+                                    displayTotal += points;
+                                }
+                            });
+                        } else if (scoringType === 'stroke_net') {
+                            const gross = Object.values(playerScores).reduce((a, b) => a + (b || 0), 0);
+                            displayTotal = gross - player.handicap;
+                        } else {
+                            // Scratch / Gross
+                            displayTotal = Object.values(playerScores).reduce((a, b) => a + (b || 0), 0);
+                        }
 
                         return (
                             <tr key={player.id} className="border-b hover:bg-golf-light/30 transition-colors">
@@ -38,7 +59,12 @@ const ScoreCard = ({ players, holes, scores, currentHole }) => {
                                         {playerScores[hole.number] || '-'}
                                     </td>
                                 ))}
-                                <td className="px-2 py-3 text-center font-bold text-golf-deep">{totalScore}</td>
+                                <td className="px-2 py-3 text-center font-bold text-golf-deep">
+                                    {displayTotal}
+                                    <span className="text-xs font-normal text-gray-500 block">
+                                        {scoringType === 'stableford' ? 'pts' : (scoringType === 'stroke_net' ? 'net' : 'grs')}
+                                    </span>
+                                </td>
                             </tr>
                         );
                     })}

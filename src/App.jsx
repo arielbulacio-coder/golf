@@ -225,6 +225,7 @@ function App() {
               holes={currentCourse.holes}
               scores={scores}
               currentHole={currentHoleNum}
+              scoringType={scoringType}
             />
             <div className="text-center mt-8">
               <button

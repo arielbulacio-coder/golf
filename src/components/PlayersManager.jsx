@@ -88,6 +88,11 @@ const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
                             {t('scoring.scratch')}
                         </button>
                     </div>
+                    <div className="mt-2 p-2 bg-white/50 text-xs text-blue-800 rounded">
+                        {scoringType === 'stroke_net' && t('scoring.descStrokeNet')}
+                        {scoringType === 'stableford' && t('scoring.descStableford')}
+                        {scoringType === 'scratch' && t('scoring.descScratch')}
+                    </div>
                 </div>
             )}
 
@@ -140,7 +145,7 @@ const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };
 

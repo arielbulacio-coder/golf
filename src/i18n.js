@@ -21,7 +21,10 @@ const resources = {
                 title: "Modo de Juego",
                 strokeNet: "Stroke Play (Neto)",
                 stableford: "Stableford",
-                scratch: "Gross (Scratch)"
+                scratch: "Gross (Scratch)",
+                descStrokeNet: "Gana el jugador con menos golpes totales menos su hándicap.",
+                descStableford: "Suma puntos por hoyo según resultado vs par. + puntos es mejor.",
+                descScratch: "Gana el jugador con menos golpes en total (sin hándicap)."
             },
             players: {
                 title: "Directorio de Jugadores",
