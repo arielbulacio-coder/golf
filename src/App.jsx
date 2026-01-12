@@ -176,8 +176,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-golf-light font-sans text-gray-800 flex flex-col">
-      <nav className="bg-golf-deep text-white p-4 shadow-md sticky top-0 z-50">
+    <div className="h-full bg-golf-light font-sans text-gray-800 flex flex-col overflow-hidden supports-[height:100dvh]:h-[100dvh]">
+      <nav className="bg-golf-deep text-white p-4 pt-safe shadow-md sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
@@ -201,7 +201,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto py-6 px-4 flex-grow w-full">
+      <main className="max-w-4xl mx-auto py-6 px-4 flex-grow w-full overflow-y-auto overscroll-y-contain scroll-smooth pb-safe">
         {view === 'hole' && (
           <HoleView
             hole={currentHole}
@@ -294,13 +294,12 @@ function App() {
             <CalibrationView />
           </div>
         )}
+        <footer className="bg-golf-deep/10 p-4 text-center mt-8">
+          <p className="text-sm text-golf-deep font-medium">
+            {t('credits.developer')}, {t('credits.rights')}
+          </p>
+        </footer>
       </main>
-
-      <footer className="bg-golf-deep/10 p-4 text-center mt-auto">
-        <p className="text-sm text-golf-deep font-medium">
-          {t('credits.developer')}, {t('credits.rights')}
-        </p>
-      </footer>
     </div>
   );
 }

@@ -3,7 +3,34 @@
 @tailwind utilities;
 
 @layer base {
+
+  html,
+  body {
+    @apply h-full overflow-hidden overscroll-none touch-manipulation;
+    height: 100dvh;
+    /* Force dynamic viewport height */
+  }
+
+  #root {
+    @apply h-full w-full relative overflow-hidden;
+  }
+
   body {
     @apply bg-golf-light text-golf-deep font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .min-h-safe {
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 }

@@ -73,7 +73,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     }, [distance, windSpeed]);
 
     return (
-        <div className="flex flex-col h-full space-y-4 p-4 max-w-md mx-auto">
+        <div className="flex flex-col min-h-full space-y-4 p-4 max-w-md mx-auto relative">
             {/* Hole Preview Modal */}
             {showPreview && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={() => setShowPreview(false)}>
@@ -154,7 +154,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
             </div>
 
             {/* Scoring */}
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-golf-light">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-golf-light mb-4">
                 <h3 className="text-golf-deep font-bold mb-4 uppercase text-xs tracking-wider border-b pb-2">{t('hole.scoring')}</h3>
                 <div className="space-y-4">
                     {players.map(player => (
@@ -179,8 +179,11 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                 </div>
             </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between pt-4">
+            {/* Spacer for content below sticky nav if needed */}
+            <div className="flex-grow"></div>
+
+            {/* Navigation - Sticky Bottom */}
+            <div className="sticky bottom-0 left-0 right-0 pt-4 pb-safe -mx-4 px-4 bg-golf-light/95 backdrop-blur-md border-t border-golf-deep/10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] mt-auto z-10 flex justify-between">
                 <button
                     onClick={onPrevHole}
                     disabled={hole.number === 1}
