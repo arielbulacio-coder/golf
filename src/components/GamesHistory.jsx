@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const GamesHistory = () => {
+const GamesHistory = ({ onViewGame }) => {
     const { t } = useTranslation();
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -105,6 +105,12 @@ const GamesHistory = () => {
                                 <div className="text-xs text-gray-500">{formatDate(game.date)}</div>
                                 <div className="text-sm mt-1">{getWinnerName(game.scores)} - Scored</div>
                             </div>
+                            <button
+                                onClick={() => onViewGame(game)}
+                                className="mr-2 text-blue-500 hover:bg-blue-50 p-2 rounded transition font-bold text-xs border border-blue-200"
+                            >
+                                👁️ Ver Tarjeta
+                            </button>
                             <button
                                 onClick={() => handleDeleteGame(game.id)}
                                 className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"

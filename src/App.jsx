@@ -20,6 +20,7 @@ function App() {
   const [scores, setScores] = useState({});
   const [view, setView] = useState('hole');
   const [winner, setWinner] = useState(null);
+  const [historyGame, setHistoryGame] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
   const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
 
@@ -97,6 +98,34 @@ function App() {
   const currentHole = currentCourse.holes.find(h => h.number === currentHoleNum);
 
   // ... existing handlers ...
+
+  const handleViewHistory = (game) => {
+    let parsedScores = {};
+    let parsedPlayers = [];
+    try {
+      parsedScores = typeof game.scores === 'string' ? JSON.parse(game.scores) : game.scores;
+      // Try to get players from snapshot, otherwise empty (or we could fallback to current if IDs match, but unsafe)
+      parsedPlayers = game.players ? (typeof game.players === 'string' ? JSON.parse(game.players) : game.players) : [];
+
+      // If legacy game without players snapshot, we might just show scores with IDs?
+      // Or if we have simple IDs in scores keys, we can try to map mock players:
+      if (parsedPlayers.length === 0) {
+        Object.keys(parsedScores).forEach(pid => {
+          parsedPlayers.push({ id: pid, name: `Player ${pid}`, handicap: 0 });
+        });
+      }
+    } catch (e) {
+      console.error("Error parsing history game", e);
+      return;
+    }
+
+    setHistoryGame({
+      ...game,
+      scores: parsedScores,
+      players: parsedPlayers
+    });
+    setView('history_scorecard');
+  };
 
   const handleScoreUpdate = (playerId, score) => {
     setScores(prev => ({
@@ -181,7 +210,8 @@ function App() {
     const gameData = {
       id: Date.now(),
       course_id: currentCourse.id,
-      scores: JSON.stringify(scores), // Store as string to match DB format usually or keep as obj
+      scores: JSON.stringify(scores),
+      players: JSON.stringify(players), // Snapshot of current players
       date: new Date().toISOString(),
       winner: winner ? winner.name : 'Unknown'
     };
@@ -292,8 +322,29 @@ function App() {
           <WeatherView weather={weatherData} />
         )}
 
-        {view === 'history' && (
-          <GamesHistory />
+        {!setupMode && view === 'history' && (
+          <GamesHistory onViewGame={handleViewHistory} />
+        )}
+
+        {view === 'history_scorecard' && historyGame && (
+          <div className="animate-fade-in-up">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-golf-deep">📜 Tarjeta Histórica</h2>
+              <button onClick={() => { setHistoryGame(null); setView('history'); }} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm">
+                ↩ Volver
+              </button>
+            </div>
+            <div className="bg-white p-2 rounded-lg mb-4 text-xs text-center border border-gray-100">
+              {new Date(historyGame.date).toLocaleString()}
+            </div>
+            <ScoreCard
+              players={historyGame.players}
+              holes={currentCourse.holes}
+              scores={historyGame.scores}
+              currentHole={18} // Show full
+              scoringType={scoringType}
+            />
+          </div>
         )}
 
         {view === 'rules' && <GolfRules />}
