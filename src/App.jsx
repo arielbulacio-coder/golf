@@ -61,19 +61,31 @@ function App() {
   }, []);
 
   // Fetch Weather based on Course Location
+  // Fetch Weather based on Course Location (Open-Meteo API, works on GH Pages)
   useEffect(() => {
-    if (window.location.hostname.includes('github.io')) return;
-
-    // We try to get lat/lng from the first hole of the current course to get approximate location
-    // Or hardcode Medal's location if we know it: -34.4442, -58.9665
-    // Better to use the course ID logic or specific property
+    // Medal's location: -34.4442, -58.9665
+    // Open-Meteo is free and supports CORS
     const lat = -34.4442;
     const lng = -58.9665;
 
-    fetch(`${API_URL}/api/weather?lat=${lat}&lng=${lng}`)
+    // We fetch current weather + hourly to simulate forecast
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        setWeatherData(data);
+        // Flatten data to match expected structure or adapt the view
+        if (data.current) {
+          setWeatherData({
+            temp: data.current.temperature_2m,
+            wind_speed: data.current.wind_speed_10m,
+            wind_dir: data.current.wind_direction_10m,
+            description: "Weather Code " + data.current.weather_code, // ideally map codes to text
+            humidity: data.current.relative_humidity_2m,
+            feels_like: data.current.apparent_temperature,
+            daily: data.daily // Pass daily for forecast
+          });
+        }
       })
       .catch(err => console.error("Weather fetch failed", err));
   }, [currentCourse]);

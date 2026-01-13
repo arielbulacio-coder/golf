@@ -8,17 +8,20 @@ const WeatherView = ({ weather }) => {
         return <div className="text-center p-10 text-gray-500">Loading Weather...</div>;
     }
 
-    const { current_weather, daily } = weather;
+    // Data structure was flattened in App.jsx
+    const { temp, wind_speed, wind_dir, daily, description } = weather;
+    // Extract code from description string "Weather Code X" or passed directly
+    const weatherCode = parseInt(description.split(' ')[2]) || 0;
 
     const getWeatherIcon = (code) => {
         // WMO Weather interpretation codes (WW)
-        if (code === 0) return '☀️';
-        if (code >= 1 && code <= 3) return 'Vkd';
-        if (code >= 45 && code <= 48) return '🌫️';
-        if (code >= 51 && code <= 67) return '🌧️';
-        if (code >= 71 && code <= 77) return '❄️';
-        if (code >= 80 && code <= 82) return '🌦️';
-        if (code >= 95) return '⚡';
+        if (code === 0) return '☀️'; // Clear sky
+        if (code >= 1 && code <= 3) return '⛅'; // Mainly clear, partly cloudy, overcast
+        if (code >= 45 && code <= 48) return '🌫️'; // Fog
+        if (code >= 51 && code <= 67) return '🌧️'; // Drizzle / Rain
+        if (code >= 71 && code <= 77) return '❄️'; // Snow
+        if (code >= 80 && code <= 82) return '🌦️'; // Rain showers
+        if (code >= 95) return '⚡'; // Thunderstorm
         return '❓';
     };
 
@@ -28,21 +31,22 @@ const WeatherView = ({ weather }) => {
                 <div className="flex justify-between items-start">
                     <div>
                         <h2 className="text-3xl font-bold">{t('weather.current')}</h2>
-                        <div className="text-5xl font-bold mt-2">{current_weather.temperature}°C</div>
+                        <div className="text-5xl font-bold mt-2">{temp}°C</div>
                     </div>
-                    <div className="text-6xl">{getWeatherIcon(current_weather.weathercode)}</div>
+                    <div className="text-6xl">{getWeatherIcon(weatherCode)}</div>
                 </div>
                 <div className="mt-6 grid grid-cols-2 gap-4">
                     <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
                         <div className="text-sm opacity-80">{t('hole.wind')}</div>
-                        <div className="text-xl font-bold">{current_weather.windspeed} km/h</div>
-                        <div className="text-xs transform" style={{ transform: `rotate(${current_weather.winddirection}deg)` }}>
-                            ➤ Direction
+                        <div className="text-xl font-bold">{wind_speed} km/h</div>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xl" style={{ display: 'inline-block', transform: `rotate(${wind_dir}deg)` }}>⬇</span>
+                            <span className="text-xs">Dir: {wind_dir}°</span>
                         </div>
                     </div>
                     <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
-                        <div className="text-sm opacity-80">Elevation</div>
-                        <div className="text-xl font-bold">45m</div>
+                        <div className="text-sm opacity-80">Humedad</div>
+                        <div className="text-xl font-bold">{weather.humidity}%</div>
                     </div>
                 </div>
             </div>
