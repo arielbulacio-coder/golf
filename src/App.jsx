@@ -11,8 +11,30 @@ import GolfRules from './components/GolfRules';
 import GolfClubs from './components/GolfClubs';
 import GolfSimulator from './components/GolfSimulator';
 import TrainingView from './components/TrainingView';
+import { registerSW } from 'virtual:pwa-register';
 
 function App() {
+  // PWA Auto-Update Logic
+  useEffect(() => {
+    const updateSW = registerSW({
+      onRegisteredSW(swUrl, r) {
+        r && setInterval(() => {
+          r.update();
+        }, 60 * 1000); // Check for updates every minute
+      }
+    });
+
+    // Reload page when new SW takes control
+    let refreshing = false;
+    navigator.serviceWorker?.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
+    return () => { };
+  }, []);
 
 
   const { t, i18n } = useTranslation();
