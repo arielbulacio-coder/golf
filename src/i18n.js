@@ -70,11 +70,11 @@ const resources = {
             credits: {
                 title: "Acerca de Golf Caddy AI",
                 description: "Esta aplicación es tu compañero inteligente de golf. Utiliza GPS para calcular distancias precisas al green, analiza las condiciones del viento y utiliza Inteligencia Artificial para sugerirte el palo ideal para cada golpe. Lleva el conteo de golpes de múltiples jugadores y calcula el ganador final considerando el hándicap.",
-                developer: "Desarrollo por Ariel Bulacio año 2026",
+                developer: "Desarrollo por PilarSoft año 2026",
                 rights: "todos los derechos reservados",
                 devMode: "Modo Desarrollador",
                 contact: "Sugerencias o agregar canchas:",
-                whatsapp: "WhatsApp: +54 9 11 6898-7786",
+                whatsapp: "WhatsApp: +54 9 11 6898-7786 - ¿O quieres ser sponsor?",
                 sponsorsTitle: "Nuestros Sponsors",
                 sponsorsDesc: "Gracias a ellos esta app sigue funcionando gratis para vos."
             },
