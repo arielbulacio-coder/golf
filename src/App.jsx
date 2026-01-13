@@ -385,7 +385,7 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v3.3</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v3.4</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide mask-fade">
