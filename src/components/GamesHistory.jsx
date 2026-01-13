@@ -12,7 +12,10 @@ const GamesHistory = () => {
     }, []);
 
     const fetchGames = () => {
+        // Always load local games first or combined? For now, if on github, only local.
         if (window.location.hostname.includes('github.io')) {
+            const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+            setGames(localGames.sort((a, b) => b.id - a.id));
             setLoading(false);
             return;
         }
@@ -20,11 +23,25 @@ const GamesHistory = () => {
         fetch(`${API_URL}/api/games`)
             .then(res => res.json())
             .then(data => {
-                if (data.data) setGames(data.data);
+                if (data.data) {
+                    // Start with server games
+                    let allGames = data.data;
+                    // Add local ones if any (that aren't synced) - simple concat for now
+                    const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+                    // Avoid duplicates if IDs conflict (unlikely with Timestamp vs Int ID, but good to be safe)
+                    /* logic could be improved here to sync */
+                    setGames([...allGames, ...localGames].sort((a, b) => new Date(b.date) - new Date(a.date)));
+                } else {
+                    const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+                    setGames(localGames);
+                }
                 setLoading(false);
             })
             .catch(err => {
                 console.error("Could not fetch games", err);
+                // Fallback to local
+                const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+                setGames(localGames);
                 setLoading(false);
             });
     };
@@ -32,8 +49,24 @@ const GamesHistory = () => {
     const handleDeleteGame = (id) => {
         if (!window.confirm(t('history.confirmDelete'))) return;
 
+        if (window.location.hostname.includes('github.io')) {
+            const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+            const updated = localGames.filter(g => g.id !== id);
+            localStorage.setItem('golf_games_history', JSON.stringify(updated));
+            fetchGames();
+            return;
+        }
+
+        // Try backend delete
         fetch(`${API_URL}/api/games/${id}`, { method: 'DELETE' })
             .then(() => {
+                fetchGames();
+            })
+            .catch(() => {
+                // Try local delete if found
+                const localGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+                const updated = localGames.filter(g => g.id !== id);
+                localStorage.setItem('golf_games_history', JSON.stringify(updated));
                 fetchGames();
             });
     };

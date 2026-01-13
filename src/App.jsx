@@ -166,8 +166,19 @@ function App() {
   };
 
   const handleSaveGame = () => {
+    const gameData = {
+      id: Date.now(),
+      course_id: currentCourse.id,
+      scores: JSON.stringify(scores), // Store as string to match DB format usually or keep as obj
+      date: new Date().toISOString(),
+      winner: winner ? winner.name : 'Unknown'
+    };
+
     if (window.location.hostname.includes('github.io')) {
-      alert("Feature available only on full server version (Caddy AI Cloud).");
+      const savedGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+      savedGames.push(gameData);
+      localStorage.setItem('golf_games_history', JSON.stringify(savedGames));
+      alert("¡Juego guardado localmente!");
       return;
     }
 
@@ -183,7 +194,13 @@ function App() {
     })
       .then(res => res.json())
       .then(() => alert("Game Saved Successfully!"))
-      .catch(() => alert("Failed to save game. Check connection."));
+      .catch(() => {
+        // Fallback to local if server fails
+        const savedGames = JSON.parse(localStorage.getItem('golf_games_history') || '[]');
+        savedGames.push(gameData);
+        localStorage.setItem('golf_games_history', JSON.stringify(savedGames));
+        alert("¡Sin conexión! Juego guardado localmente.");
+      });
   };
 
   const changeLanguage = (lng) => {
