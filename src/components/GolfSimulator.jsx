@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Sky, Text, ContactShadows, Float } from '@react-three/drei';
+import { Sky, Text, Float } from '@react-three/drei';
 import * as THREE from 'three';
 import { useTranslation } from 'react-i18next';
 
@@ -125,7 +125,7 @@ const GolfSimulator = () => {
     const isSimulatingRef = useRef(false);
     const isInBunkerRef = useRef(false);
     // Track ball landing pos for React updates (UI only) - we don't strictly need it for render if using refs, but good for react synch
-    const [uiSync, setUiSync] = useState(0); // Dummy state to force render when needed
+    const [uiSync, setUiSync] = useState(0);
 
     // Game Logic State
     const [targetPos, setTargetPos] = useState([0, 0, 150]);
@@ -252,14 +252,17 @@ const GolfSimulator = () => {
         useFrame((state, delta) => {
             if (!isSimulatingRef.current) return;
 
+            // Clamp delta to prevent flying off screen on lag spike
+            const dt = Math.min(delta, 0.1);
+
             const pos = ballRef.current; // Direct ref mutation
             const vel = velocityRef.current;
             const gravity = 9.8;
 
             if (gameMode === 'flying') {
                 // Air Physics
-                pos.addScaledVector(vel, delta * 3); // Faster sim
-                vel.y -= gravity * delta * 3;
+                pos.addScaledVector(vel, dt * 3); // Faster sim
+                vel.y -= gravity * dt * 3;
 
                 // Ground Check
                 if (pos.y <= 0.3) {
@@ -304,7 +307,7 @@ const GolfSimulator = () => {
             }
             else if (gameMode === 'putting_active') {
                 // Rolling
-                pos.addScaledVector(vel, delta * 5);
+                pos.addScaledVector(vel, dt * 5);
                 vel.multiplyScalar(0.96); // Friction
 
                 if (vel.length() < 0.1) {
@@ -350,12 +353,12 @@ const GolfSimulator = () => {
         <div className="w-full h-screen pb-safe flex flex-col bg-gray-900 font-sans">
             {/* 3D Viewport */}
             <div className="flex-grow relative overflow-hidden">
-                <Canvas shadows camera={{ position: [0, 5, -5], fov: 60 }}>
+                <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 5, -5], fov: 60 }}>
                     <Suspense fallback={null}>
                         <Sky sunPosition={[100, 40, 100]} />
                         <ambientLight intensity={0.6} />
                         <directionalLight position={[10, 40, 10]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
-                        <ContactShadows resolution={512} scale={200} blur={2} opacity={0.4} far={20} color="#000000" />
+                        {/* ContactShadows removed for performance */}
                     </Suspense>
 
                     <Terrain />
