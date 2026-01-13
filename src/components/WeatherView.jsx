@@ -60,7 +60,7 @@ const WeatherView = ({ weather }) => {
                             <p className="font-bold text-gray-700">{new Date(date).toLocaleDateString()}</p>
                             <p className="text-sm text-gray-500">{t('weather.max')}: {daily.temperature_2m_max[index]}°C / {t('weather.min')}: {daily.temperature_2m_min[index]}°C</p>
                         </div>
-                        <div className="text-4xl">{getWeatherIcon(daily.weathercode[index])}</div>
+                        <div className="text-4xl">{getWeatherIcon(daily.weather_code[index])}</div>
                     </div>
                 ))}
             </div>
