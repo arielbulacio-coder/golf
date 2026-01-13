@@ -311,7 +311,7 @@ function App() {
             hole={currentHole}
             players={players}
             scores={scores}
-            weather={weatherData ? weatherData.current_weather : null}
+            weather={weatherData}
             onNextHole={handleNextHole}
             onPrevHole={handlePrevHole}
             onUpdateScore={handleScoreUpdate}

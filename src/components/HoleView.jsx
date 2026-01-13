@@ -9,14 +9,59 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     const [club, setClub] = useState('');
     const [showPreview, setShowPreview] = useState(false);
 
-    // Use current weather if available, otherwise fallback
-    // Fix: Match properties from App.jsx Open-Meteo fetch (wind_speed, wind_dir, temp)
+    // Weather Data Fix: Match properties from App.jsx Open-Meteo fetch
     const windSpeed = weather ? weather.wind_speed : 10;
     const windDirection = weather ? weather.wind_dir : 0;
-    const temperature = weather ? weather.temp : 20; // Default 20C if no data
+    const temperature = weather ? weather.temp : 20;
 
     const [locationError, setLocationError] = useState(null);
+    const [heading, setHeading] = useState(0);
+    const [compassActive, setCompassActive] = useState(false);
 
+    // Compass Logic
+    useEffect(() => {
+        const handleOrientation = (e) => {
+            // iOS uses webkitCompassHeading, others alpha. 
+            // Alpha is usually 0=North on Android if 'absolute', but can be relative.
+            let compass = e.webkitCompassHeading || (e.alpha ? Math.abs(e.alpha - 360) : 0);
+            setHeading(compass || 0);
+            if (e.webkitCompassHeading || e.alpha !== null) setCompassActive(true);
+        };
+
+        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            // Non-iOS 13+ devices: add listener immediately
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+
+        return () => {
+            window.removeEventListener('deviceorientation', handleOrientation);
+        };
+    }, []);
+
+    const requestCompassPermission = () => {
+        // iOS 13+ requires permission
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        setCompassActive(true);
+                        // Re-attach listener if needed, though global logic usually picks it up
+                        window.addEventListener('deviceorientation', (e) => {
+                            let compass = e.webkitCompassHeading || (e.alpha ? Math.abs(e.alpha - 360) : 0);
+                            setHeading(compass || 0);
+                            setCompassActive(true);
+                        });
+                    } else {
+                        alert("Permiso de brújula denegado. La dirección del viento será estática.");
+                    }
+                })
+                .catch(console.error);
+        } else {
+            if (!compassActive) alert("La brújula debería activarse automáticamente. Si no funciona, tu dispositivo podría no soportarla.");
+        }
+    };
+
+    // GPS Logic
     useEffect(() => {
         if (!navigator.geolocation) {
             setLocationError("Geolocation is not supported by your browser.");
@@ -57,11 +102,14 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
         return () => navigator.geolocation.clearWatch(watchId);
     }, [hole]);
 
-    // Simplified club recommendation: use real wind direction
+    // Club Recommendation with Compass
     useEffect(() => {
-        // windDirection is FROM. 
-        setClub(recommendClub(distance, windSpeed, windDirection));
-    }, [distance, windSpeed, windDirection]);
+        // If compass is active, we use relative wind (Wind - Heading).
+        // This assumes user points phone at target.
+        // WindDirection is 'FROM'. Headwind means WindFrom 0 (North) and Heading 0 (North) -> Relative 0.
+        const relativeWind = compassActive ? (windDirection - heading) : windDirection;
+        setClub(recommendClub(distance, windSpeed, relativeWind));
+    }, [distance, windSpeed, windDirection, heading, compassActive]);
 
     return (
         <div className="flex flex-col min-h-full space-y-4 p-4 max-w-md mx-auto relative">
@@ -134,27 +182,31 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                         <span className="text-xl font-bold leading-none">{club}</span>
                     </div>
                     <div className="mt-2 text-[10px] text-gray-300">
-                        Sugerencia basada en {distance}y + viento
+                        {compassActive ? "Sugerencia dinámica (Apuntar)" : "Sugerencia estática"}
                     </div>
                 </div>
 
                 {/* Wind Highlight */}
-                <div className="col-span-1 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 text-white shadow-lg border border-blue-400/20 relative overflow-hidden">
+                <div
+                    onClick={requestCompassPermission}
+                    className="cursor-pointer col-span-1 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 text-white shadow-lg border border-blue-400/20 relative overflow-hidden active:scale-95 transition-transform"
+                >
                     <div className="absolute bottom-0 left-0 -ml-2 -mb-2 w-12 h-12 bg-white/10 rounded-full blur-xl"></div>
 
                     <div className="flex justify-between items-start mb-1">
-                        <div className="text-xs font-black text-blue-200 uppercase tracking-wider">Clima Real</div>
+                        <div className="text-xs font-black text-blue-200 uppercase tracking-wider">Viento {compassActive ? "Real" : "(Tap)"}</div>
                         <div className="text-xs font-bold text-white bg-blue-500/30 px-1.5 rounded">{temperature}°C</div>
                     </div>
 
                     <div className="flex items-center justify-between">
                         <div className="text-2xl font-bold">{windSpeed} <span className="text-xs font-normal">km/h</span></div>
-                        <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full">
-                            <span style={{ transform: `rotate(${windDirection + 180}deg)`, display: 'inline-block', fontSize: '1.2rem', fontWeight: 'bold' }}>⬆</span>
+                        <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full shadow-inner ring-1 ring-white/20">
+                            {/* Wind From + 180 = Wind To. Minus Heading rotates opposite to compass. */}
+                            <span style={{ transform: `rotate(${windDirection + 180 - heading}deg)`, display: 'inline-block', fontSize: '1.2rem', fontWeight: 'bold', transition: 'transform 0.5s ease-out' }}>⬆</span>
                         </div>
                     </div>
-                    <div className="mt-2 text-[10px] text-blue-200">
-                        {windDirection}° (Desde el Norte)
+                    <div className="mt-2 text-[10px] text-blue-200 truncate">
+                        {compassActive ? "Brújula Activa" : "Toque para brújula"}
                     </div>
                 </div>
             </div>
