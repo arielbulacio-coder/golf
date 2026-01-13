@@ -13,6 +13,57 @@ import GolfSimulator from './components/GolfSimulator';
 import TrainingView from './components/TrainingView';
 import { registerSW } from 'virtual:pwa-register';
 
+// Helper for distance between two lat/lng points in meters
+function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2 - lat1);
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d * 1000; // Distance in meters
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+
+// Activity View Component
+const ActivityView = ({ stats }) => (
+  <div className="animate-fade-in-up bg-white rounded-2xl shadow-xl p-6 border-t-8 border-green-500 max-w-md mx-auto">
+    <h2 className="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3">
+      <span className="text-4xl">🏃‍♂️</span> Actividad en Vivo
+    </h2>
+
+    <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Pasos</div>
+        <div className="text-3xl font-black text-golf-deep">{stats.steps}</div>
+      </div>
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Calorías</div>
+        <div className="text-3xl font-black text-orange-500">{stats.calories} <span className="text-sm text-gray-400">kcal</span></div>
+      </div>
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Distancia</div>
+        <div className="text-3xl font-black text-blue-500">{(stats.distance / 1000).toFixed(2)} <span className="text-sm text-gray-400">km</span></div>
+      </div>
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Tiempo</div>
+        <div className="text-3xl font-black text-gray-700">{Math.floor((Date.now() - stats.startTime) / 60000)} <span className="text-sm text-gray-400">min</span></div>
+      </div>
+    </div>
+
+    <div className="bg-green-50 text-green-800 p-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 animate-pulse">
+      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+      GPS Tracking Activo
+    </div>
+  </div>
+);
+
 function App() {
   // PWA Auto-Update Logic
   useEffect(() => {
@@ -56,6 +107,49 @@ function App() {
     calories: 0,
     startTime: Date.now()
   });
+
+  // Update Fitness ref for tracking delta
+  const lastPosRef = React.useRef(null);
+
+  // Global GPS Tracking for Fitness
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        if (lastPosRef.current) {
+          const dMeters = getDistanceFromLatLonInMeters(
+            lastPosRef.current.lat, lastPosRef.current.lng,
+            latitude, longitude
+          );
+
+          // Filter GPS jitter: only count movement > 5 meters
+          if (dMeters > 5 && dMeters < 500) {
+            setFitnessStats(prev => {
+              const newDist = prev.distance + dMeters;
+              const newSteps = Math.floor(newDist / 0.75);
+              const newCals = Math.floor(newDist * 0.05 + ((Date.now() - prev.startTime) / 60000) * 1.5);
+
+              return {
+                ...prev,
+                distance: newDist,
+                steps: newSteps,
+                calories: newCals
+              };
+            });
+            lastPosRef.current = { lat: latitude, lng: longitude };
+          }
+        } else {
+          lastPosRef.current = { lat: latitude, lng: longitude };
+        }
+      },
+      (err) => console.log("GPS BG Error", err),
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
 
   // Determine API_URL dynamically
   let API_URL = 'http://localhost:3001'; // Default for local dev
@@ -300,6 +394,7 @@ function App() {
             <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
             <button onClick={() => setView('history')} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
             <button onClick={() => setView('weather')} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
+            <button onClick={() => setView('activity')} className={`hover:text-golf-accent transition ${view === 'activity' ? 'text-golf-accent' : 'opacity-80'}`}>🏃Actividad</button>
             <button onClick={() => setView('simulator')} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
             <button onClick={() => setView('training')} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
             <button onClick={() => setView('rules')} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
@@ -350,14 +445,15 @@ function App() {
             onNextHole={handleNextHole}
             onPrevHole={handlePrevHole}
             onUpdateScore={handleScoreUpdate}
-            fitnessStats={fitnessStats}
-            onUpdateFitness={setFitnessStats}
+          // fitnessStats kept in App state tracking globally now
           />
         )}
 
         {view === 'weather' && (
           <WeatherView weather={weatherData} />
         )}
+
+        {view === 'activity' && <ActivityView stats={fitnessStats} />}
 
         {!setupMode && view === 'history' && (
           <GamesHistory onViewGame={handleViewHistory} />

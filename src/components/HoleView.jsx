@@ -2,25 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { recommendClub, calculateDistance } from '../utils/golfLogic';
 
-// Helper for distance between two lat/lng points in meters
-function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-    var R = 6371; // Radius of the earth in km
-    var dLat = deg2rad(lat2 - lat1);
-    var dLon = deg2rad(lon2 - lon1);
-    var a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c; // Distance in km
-    return d * 1000; // Distance in meters
-}
+// Helper for distance removed as it is now in App.jsx or not needed here for simple distance to hole (which uses calculateDistance utility)
 
 function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores, weather, fitnessStats, onUpdateFitness }) => {
+const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores, weather }) => {
     const { t } = useTranslation();
     const [userLocation, setUserLocation] = useState(null);
     const [distance, setDistance] = useState(hole.yards);
@@ -37,7 +25,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     const [compassActive, setCompassActive] = useState(false);
 
     // GPS Tracking Ref
-    const lastPosRef = useRef(null);
+    // const lastPosRef = useRef(null); // Moved to App.jsx
 
     // Compass Logic
     useEffect(() => {
@@ -72,7 +60,6 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
         }
     };
 
-    // GPS & Fitness Logic
     useEffect(() => {
         if (!navigator.geolocation) {
             setLocationError("Geolocation is not supported by your browser.");
@@ -96,39 +83,6 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                     const dist = calculateDistance(latitude, longitude, hole.coordinates.lat, hole.coordinates.lng);
                     setDistance(dist);
                 }
-
-                // --- Fitness Tracking ---
-                if (onUpdateFitness) {
-                    if (lastPosRef.current) {
-                        const dMeters = getDistanceFromLatLonInMeters(
-                            lastPosRef.current.lat, lastPosRef.current.lng,
-                            latitude, longitude
-                        );
-
-                        // Filter GPS jitter: only count movement > 5 meters
-                        if (dMeters > 5 && dMeters < 500) { // <500 avoids teleport jumps
-                            onUpdateFitness(prev => {
-                                const newDist = prev.distance + dMeters;
-                                // 0.75m per step average
-                                const newSteps = Math.floor(newDist / 0.75);
-                                // ~5 kcal per min walking, or approx 0.05 kcal per meter (assuming 70kg person walking)
-                                const newCals = Math.floor(newDist * 0.05 + ((Date.now() - prev.startTime) / 60000) * 1.5);
-
-                                return {
-                                    ...prev,
-                                    distance: newDist,
-                                    steps: newSteps,
-                                    calories: newCals
-                                };
-                            });
-                            // Update last ref ONLY if moved
-                            lastPosRef.current = { lat: latitude, lng: longitude };
-                        }
-                    } else {
-                        // First valid point
-                        lastPosRef.current = { lat: latitude, lng: longitude };
-                    }
-                }
             },
             (error) => {
                 console.error(error);
@@ -138,7 +92,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
         );
 
         return () => navigator.geolocation.clearWatch(watchId);
-    }, [hole, onUpdateFitness]); // Re-run if hole changes (reset logic?) No, keep tracking continuously.
+    }, [hole]);
 
     // Force re-evaluation of lastPosRef on hole change? No, we want continuous tracking.
     // However, if component unmounts, ref is lost. But state is in App.
@@ -211,34 +165,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                 </div>
             </div>
 
-            {/* Fitness Tracking Card */}
-            {fitnessStats && (
-                <div className="bg-black/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-lg border border-gray-700 animate-slide-in">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xs font-black text-green-400 uppercase tracking-widest flex items-center gap-1">
-                            <span className="animate-pulse">●</span> Actividad en Vivo
-                        </h3>
-                        <span className="text-[10px] text-gray-400">GPS Traking On</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                        <div className="bg-white/10 rounded-lg p-2">
-                            <div className="text-xl font-bold">{fitnessStats.steps}</div>
-                            <div className="text-[10px] text-gray-400 uppercase">Pasos</div>
-                        </div>
-                        <div className="bg-white/10 rounded-lg p-2">
-                            <div className="text-xl font-bold text-orange-400">{fitnessStats.calories}</div>
-                            <div className="text-[10px] text-gray-400 uppercase">Kcal</div>
-                        </div>
-                        <div className="bg-white/10 rounded-lg p-2">
-                            <div className="text-xl font-bold text-blue-400">{(fitnessStats.distance / 1000).toFixed(2)}</div>
-                            <div className="text-[10px] text-gray-400 uppercase">Km</div>
-                        </div>
-                    </div>
-                    <div className="mt-2 text-center text-xs text-gray-500">
-                        ⏱️ Tiempo de Juego: {Math.floor((Date.now() - fitnessStats.startTime) / 60000)} min
-                    </div>
-                </div>
-            )}
+
 
             {/* AI Caddy & Wind Highlight Container */}
             <div className="grid grid-cols-2 gap-3">
