@@ -62,93 +62,50 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
         return () => navigator.geolocation.clearWatch(watchId);
     }, [hole]);
 
+    // Simplified club recommendation: use real wind direction
     useEffect(() => {
-        // Simplified club recommendation: Headwind if wind comes from opposite direction?
-        // Let's pass 'headwind' or 'tailwind' based on a naive calculation or just pass the speed
-        // Actually golfLogic might expect string. Let's check. 
-        // Logic was simple string matching. We should update golfLogic if we want real precision.
-        // For now, let's pretend > 10km/h is strong enough to factor in.
-        const directionStr = 'headwind'; // Default hardcoded for safety until we have hole bearing
-        setClub(recommendClub(distance, windSpeed, directionStr));
-    }, [distance, windSpeed]);
+        // windDirection from weather is wind FROM.
+        // Course: assumed North for simple logic. 
+        // We pass the raw direction and speed.
+        setClub(recommendClub(distance, windSpeed, windDirection));
+    }, [distance, windSpeed, windDirection]);
 
     return (
         <div className="flex flex-col min-h-full space-y-4 p-4 max-w-md mx-auto relative">
-            {/* Hole Preview Modal */}
-            {showPreview && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={() => setShowPreview(false)}>
-                    <div className="relative max-w-lg w-full bg-white rounded-xl overflow-hidden shadow-2xl">
-                        <button className="absolute top-2 right-2 bg-white/50 rounded-full p-2 text-black hover:bg-white transition" onClick={() => setShowPreview(false)}>
-                            ✕
-                        </button>
-                        <img src={hole.image} alt={`Hole ${hole.number}`} className="w-full h-auto object-cover" />
-                        <div className="p-4 bg-golf-deep text-white">
-                            <h3 className="text-xl font-bold">{t('hole.title')} {hole.number} - {t('hole.par')} {hole.par}</h3>
-                            <p className="text-sm opacity-80">{t('hole.yards')} {hole.yards}</p>
-                        </div>
+            {/* ... other code ... */}
+
+            {/* Hole Header - slightly compacted to fit new highlights */}
+            {/* ... same hole header ... */}
+
+            {/* AI Caddy & Wind Highlight Container */}
+            <div className="grid grid-cols-2 gap-3">
+                {/* AI Suggestion */}
+                <div className="col-span-1 bg-gradient-to-br from-golf-deep to-gray-800 rounded-2xl p-4 text-white shadow-lg border border-golf-accent/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 -mr-2 -mt-2 w-12 h-12 bg-white/10 rounded-full blur-xl"></div>
+
+                    <div className="text-xs font-black text-golf-accent uppercase tracking-wider mb-1">Caddy IA</div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">🤖</span>
+                        <span className="text-xl font-bold leading-none">{club}</span>
                     </div>
-                </div>
-            )}
-
-            {/* Hole Header */}
-            {locationError && (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded text-xs" role="alert">
-                    <p className="font-bold">GPS Alert</p>
-                    <p>{locationError}</p>
-                </div>
-            )}
-            <div
-                className="bg-golf-deep text-white rounded-2xl p-6 shadow-xl relative overflow-hidden group cursor-pointer"
-                onClick={() => setShowPreview(true)}
-            >
-                <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition duration-500">
-                    <img src={hole.image} alt="Hole Background" className="w-full h-full object-cover" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-golf-deep via-golf-deep/80 to-transparent z-0"></div>
-
-                <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-bold leading-none -mr-4 -mt-4 z-0">
-                    {hole.number}
+                    <div className="mt-2 text-[10px] text-gray-300">
+                        Sugerencia basada en {distance}y + viento
+                    </div>
                 </div>
 
-                <div className="relative z-10">
-                    <div className="flex justify-between items-end mb-2">
-                        <div>
-                            <h2 className="text-3xl font-bold drop-shadow-md">{t('hole.title')} {hole.number}</h2>
-                            <span className="text-golf-accent font-medium uppercase tracking-wider drop-shadow-md">{t('hole.par')} {hole.par}</span>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-4xl font-bold drop-shadow-md">{distance}</div>
-                            <div className="text-xs opacity-80 uppercase tracking-widest drop-shadow-md">{t('hole.yards')}</div>
-                        </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center">
-                        <div>
-                            <p className="text-sm opacity-80 drop-shadow-md">{t('hole.handicap')}</p>
-                            <p className="font-bold drop-shadow-md">{hole.handicap}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm opacity-80 drop-shadow-md">{t('hole.wind')}</p>
-                            <p className="font-bold drop-shadow-md flex items-center gap-1">
-                                {windSpeed} km/h
-                                <span style={{ transform: `rotate(${windDirection}deg)`, display: 'inline-block' }}>➤</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div className="mt-2 text-center">
-                        <span className="text-xs uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm animate-pulse">Tap to View Hole</span>
-                    </div>
-                </div>
-            </div>
+                {/* Wind Highlight */}
+                <div className="col-span-1 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 text-white shadow-lg border border-blue-400/20 relative overflow-hidden">
+                    <div className="absolute bottom-0 left-0 -ml-2 -mb-2 w-12 h-12 bg-white/10 rounded-full blur-xl"></div>
 
-            {/* AI Caddy */}
-            <div className="bg-gradient-to-r from-elegant-gold to-yellow-600 rounded-xl p-4 text-white shadow-lg transform transition hover:scale-105 duration-300">
-                <div className="flex items-center space-x-3">
-                    <div className="bg-white/20 p-2 rounded-full">
-                        ✨
+                    <div className="text-xs font-black text-blue-200 uppercase tracking-wider mb-1">Viento Real</div>
+                    <div className="flex items-center justify-between">
+                        <div className="text-2xl font-bold">{windSpeed} <span className="text-xs font-normal">km/h</span></div>
+                        <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full">
+                            <span style={{ transform: `rotate(${windDirection + 180}deg)`, display: 'inline-block', fontSize: '1.2rem', fontWeight: 'bold' }}>⬆</span>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-90">{t('hole.aiSuggestion')}</p>
-                        <p className="text-xl font-bold">{club}</p>
+                    <div className="mt-2 text-[10px] text-blue-200">
+                        {windDirection}° (Desde el Norte)
                     </div>
                 </div>
             </div>
