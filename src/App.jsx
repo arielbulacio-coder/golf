@@ -49,6 +49,14 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
 
+  // Real-time Fitness State
+  const [fitnessStats, setFitnessStats] = useState({
+    distance: 0, // meters
+    steps: 0,
+    calories: 0,
+    startTime: Date.now()
+  });
+
   // Determine API_URL dynamically
   let API_URL = 'http://localhost:3001'; // Default for local dev
   if (window.location.hostname.includes('github.io')) {
@@ -283,7 +291,7 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v3.2</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v3.3</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide mask-fade">
@@ -342,6 +350,8 @@ function App() {
             onNextHole={handleNextHole}
             onPrevHole={handlePrevHole}
             onUpdateScore={handleScoreUpdate}
+            fitnessStats={fitnessStats}
+            onUpdateFitness={setFitnessStats}
           />
         )}
 
