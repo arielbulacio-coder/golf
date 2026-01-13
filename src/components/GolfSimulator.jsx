@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Sky, OrbitControls, Text, useTexture, Environment, ContactShadows } from '@react-three/drei';
+import { Sky, Text, ContactShadows, Float } from '@react-three/drei';
 import * as THREE from 'three';
 import { useTranslation } from 'react-i18next';
 
 // --- Constants & Data ---
 const CLUBS = [
     { name: 'Driver', maxDist: 260, loft: 10.5, color: '#e74c3c' },
+    { name: '3 Wood', maxDist: 230, loft: 15, color: '#e67e22' },
     { name: '5 Iron', maxDist: 180, loft: 27, color: '#f1c40f' },
     { name: '7 Iron', maxDist: 155, loft: 34, color: '#2ecc71' },
+    { name: 'PW', maxDist: 125, loft: 46, color: '#3498db' },
     { name: 'SW', maxDist: 90, loft: 56, color: '#9b59b6' },
     { name: 'Putter', maxDist: 30, loft: 0, color: '#34495e' }
 ];
@@ -38,11 +40,22 @@ function Flag({ position }) {
                 <meshStandardMaterial color="#bdc3c7" metalness={0.5} roughness={0.1} />
             </mesh>
             {/* Flag */}
-            <mesh position={[0, 4.25, 0]} rotation={[0, -Math.PI / 2, 0]} castShadow>
-                <boxGeometry args={[0.1, 1.5, 2]} />
-                <meshStandardMaterial color="#e74c3c" />
-            </mesh>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                <mesh position={[0, 4.25, 0]} rotation={[0, -Math.PI / 2, 0]} castShadow>
+                    <boxGeometry args={[0.1, 1.5, 2]} />
+                    <meshStandardMaterial color="#e74c3c" />
+                </mesh>
+            </Float>
         </group>
+    );
+}
+
+function Bunker({ position, width = 8, length = 12 }) {
+    return (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[position[0], 0.02, position[2]]} receiveShadow>
+            <ellipseGeometry args={[width, length, 32]} />
+            <meshStandardMaterial color="#f6d7b0" roughness={1} />
+        </mesh>
     );
 }
 
@@ -58,46 +71,39 @@ function Terrain() {
 function GameCamera({ ballPos, targetPos, mode }) {
     const { camera } = useThree();
     const targetVec = new THREE.Vector3(...targetPos);
+    const ballVec = new THREE.Vector3(...ballPos);
 
-    useFrame(() => {
-        if (mode === 'putting') {
-            // Green View: High angle from front/side looking at hole and ball
-            // Target is hole. Camera is "in front" of hole looking back at ball? 
-            // User asked: "Al llegar al green se vea de frente desde una cierta altura"
-            // Let's position camera behind the hole, looking at the ball, or side.
-            // Typically Putting view is behind ball looking at hole. 
-            // But "de frente" usually means looking at the player/ball face on?
-            // Let's interpret "de frente" as looking at the green structure.
-            // Let's do a "TV Tower" view: High up, side/front.
-
-            const camPos = new THREE.Vector3(targetVec.x + 10, 10, targetVec.z + 10);
+    useFrame((state) => {
+        if (mode === 'intro') {
+            // Fly from high above green to tee
+            const t = state.clock.getElapsedTime();
+            // Camera starts high above the midpoint
+            camera.position.lerp(new THREE.Vector3(targetVec.x / 2, 100, targetVec.z / 2 + 50), 0.05);
+            camera.lookAt(targetVec.x / 2, 0, targetVec.z / 2);
+        } else if (mode === 'putting') {
+            const camPos = new THREE.Vector3(targetVec.x, 8, targetVec.z + 8);
             camera.position.lerp(camPos, 0.05);
             camera.lookAt(targetVec.x, 0, targetVec.z);
         } else if (mode === 'flying') {
-            // Follow ball? Or stay at tee? 
-            // Simple: Stay at tee, look at ball. Or follow ball.
-            // Let's follow ball slightly behind and above.
-            const offset = new THREE.Vector3(0, 5, -10);
-            const desiredPos = new THREE.Vector3(ballPos[0], ballPos[1], ballPos[2]).add(offset);
-            // We don't want to move camera violently. 
-            // Ideally keep camera at startPos but look at ball?
-            // For simple simulator, static camera behind tee is often best to see trajectory.
+            // Follow ball
+            const offset = new THREE.Vector3(0, 10, -20);
+            const desired = ballVec.clone().add(offset);
+            camera.position.lerp(desired, 0.1);
+            camera.lookAt(ballVec);
         } else {
-            // Tee / Default View: Behind ball
-            const startPos = new THREE.Vector3(ballPos[0], ballPos[1] + 2, ballPos[2] - 5);
-            // Assuming shot goes towards +Z or something. 
-            // Actually we are shooting from 0 towards +Z? 
-            // Let's say Start is (0,0,0) and Target is (0,0, 150).
-            // Camera should be at (0, 2, -5) looking at (0,2,10).
+            // Tee / Address
+            // Behind ball looking at target
+            // Direction vector
+            const dirToTarget = new THREE.Vector3().subVectors(targetVec, ballVec).normalize();
+            const offset = dirToTarget.clone().multiplyScalar(-5).add(new THREE.Vector3(0, 2, 0)); // 5m behind, 2m up
+            const camPos = ballVec.clone().add(offset);
 
-            // If we are far, we move camera to ball.
-            camera.position.lerp(new THREE.Vector3(ballPos[0], 5, ballPos[2] - 10), 0.1);
-            camera.lookAt(targetVec.x, 0, targetVec.z);
+            camera.position.lerp(camPos, 0.1);
+            camera.lookAt(targetVec);
         }
     });
     return null;
 }
-
 
 // --- Main Simulator Component ---
 
@@ -105,179 +111,202 @@ const GolfSimulator = () => {
     const { t } = useTranslation();
 
     // Game State
-    const [ballPos, setBallPos] = useState([0, 0.3, 0]); // x, y, z
-    const [targetPos, setTargetPos] = useState([0, 0, 150]); // 150 yards away
-    const [score, setScore] = useState(0);
-    const [shotsLeft, setShotsLeft] = useState(5);
-    const [gameMode, setGameMode] = useState('tee'); // tee, flying, putting, landed
-    const [message, setMessage] = useState("¡Bienvenido! Haz tu tiro.");
+    const [ballPos, setBallPos] = useState([0, 0.3, 0]);
+    const [targetPos, setTargetPos] = useState([0, 0, 150]);
+    const [bunkers, setBunkers] = useState([]);
+
+    const [holePar, setHolePar] = useState(3);
+    const [holeDist, setHoleDist] = useState(150);
+    const [strokeCount, setStrokeCount] = useState(0);
+
+    const [gameMode, setGameMode] = useState('intro'); // intro, tee, flying, putting, hole-out
+    const [message, setMessage] = useState("");
 
     // Shot Params
-    const [selectedClub, setSelectedClub] = useState(CLUBS[2]); // 7 Iron
+    const [selectedClub, setSelectedClub] = useState(CLUBS[2]);
     const [power, setPower] = useState(80);
 
     // Physics Refs
     const ballRef = useRef(new THREE.Vector3(0, 0.3, 0));
     const velocityRef = useRef(new THREE.Vector3(0, 0, 0));
-    const gravity = 9.8;
     const isSimulatingRef = useRef(false);
+    const isInBunkerRef = useRef(false);
 
-    // Setup New Game
     useEffect(() => {
-        resetHole();
+        generateHole();
     }, []);
 
-    const resetHole = () => {
+    const generateHole = () => {
+        // Random Par 3, 4, 5
+        const rand = Math.random();
+        let par = 3;
+        let dist = 150;
+
+        if (rand < 0.33) {
+            par = 3;
+            dist = Math.floor(Math.random() * 50) + 130; // 130-180
+        } else if (rand < 0.66) {
+            par = 4;
+            dist = Math.floor(Math.random() * 100) + 280; // 280-380
+        } else {
+            par = 5;
+            dist = Math.floor(Math.random() * 100) + 450; // 450-550
+        }
+
+        setHolePar(par);
+        setHoleDist(dist);
+        setTargetPos([0, 0, dist]);
         setBallPos([0, 0.3, 0]);
         ballRef.current.set(0, 0.3, 0);
-        // Random target z: 50 to 250
-        const dist = Math.floor(Math.random() * 200) + 50;
-        setTargetPos([0, 0, dist]);
-        setGameMode('tee');
-        setMessage(`Objetivo: ${dist} yardas.`);
+        setStrokeCount(0);
+        setGameMode('intro'); // Start with intro view
+        setMessage(`Hoyo Par ${par} - ${dist} Yardas`);
 
-        // Auto Select Driver if long, Iron if med
-        if (dist > 200) setSelectedClub(CLUBS[0]);
-        else if (dist > 150) setSelectedClub(CLUBS[1]);
-        else setSelectedClub(CLUBS[2]);
+        // Generate Bunkers along the fairway/green
+        const newBunkers = [];
+        const numBunkers = Math.floor(Math.random() * 4) + 2;
+        for (let i = 0; i < numBunkers; i++) {
+            // Random pos between 50y and Target
+            const z = Math.random() * (dist - 20) + 50;
+            const x = (Math.random() - 0.5) * 40; // Spread width
+            newBunkers.push({ pos: [x, 0, z], width: 5 + Math.random() * 5, length: 5 + Math.random() * 5 });
+        }
+        setBunkers(newBunkers);
+
+        // Initial club selection
+        if (dist > 220) setSelectedClub(CLUBS[0]);
+        else if (dist > 150) setSelectedClub(CLUBS[2]);
+        else setSelectedClub(CLUBS[4]);
+    };
+
+    const startGame = () => {
+        setGameMode('tee');
+        setMessage("¡A jugar! Elige tu palo.");
     };
 
     const handleSwing = () => {
-        if (isSimulatingRef.current || shotsLeft <= 0) return;
+        if (isSimulatingRef.current || gameMode === 'intro' || gameMode === 'hole-out') return;
 
-        // 1. Calculate trajectory Physics
-        // Convert power to velocity. 
-        // Club max dist (yards) -> roughly corresponds to initial velocity.
-        // R = v^2 * sin(2theta) / g
-        // v = sqrt(R * g / sin(2theta))
-        // We assume yard = meter for simplicity in 3D scale (Threejs unit = 1 meter/yard)
+        let clubPower = power / 100;
 
-        const dist = selectedClub.maxDist * (power / 100);
+        // Penalize if in bunker
+        if (isInBunkerRef.current) {
+            // Can only hit so far from sand
+            clubPower *= 0.6; // 40% loss
+            // Force pop up?
+            if (selectedClub.name === 'Driver') {
+                setMessage("¡No uses Driver en el bunker! (Penalizado)");
+                clubPower *= 0.2;
+            }
+        }
+
+        const dist = selectedClub.maxDist * clubPower;
         const loftBox = (selectedClub.loft * Math.PI) / 180;
-
-        // Slight randomness
         const accuracy = 0.95 + Math.random() * 0.1;
         const finalDist = dist * accuracy;
+        const lateralErr = (Math.random() - 0.5) * (finalDist * (isInBunkerRef.current ? 0.2 : 0.1));
 
-        // Lateral error (slice/hook)
-        const lateralErr = (Math.random() - 0.5) * (finalDist * 0.1);
-
-        // Initial speed V0 needed to reach finalDist
-        // v0 = sqrt( (finalDist * g) / sin(2*loft) )
-        // Note: Projectile motion without air resistance.
+        const gravity = 9.8;
         const v0 = Math.sqrt(Math.abs((finalDist * gravity) / Math.sin(2 * loftBox)));
 
         const vy = v0 * Math.sin(loftBox);
         const vHorizontal = v0 * Math.cos(loftBox);
-        const vx = (lateralErr / finalDist) * vHorizontal; // Approx component
-        const vz = vHorizontal; // Towards target mainly
+        const vx = (lateralErr / finalDist) * vHorizontal;
+        const vz = vHorizontal;
 
         velocityRef.current.set(vx, vy, vz);
         isSimulatingRef.current = true;
+        isInBunkerRef.current = false; // exiting bunker
         setGameMode('flying');
-        setShotsLeft(prev => prev - 1);
+        setStrokeCount(s => s + 1);
+        setMessage(isInBunkerRef.current ? "¡Sacada de bunker!" : "¡Buen swing!");
     };
 
     const handlePutt = () => {
         if (isSimulatingRef.current) return;
-        // Rolling physics
-        const distToHole = Math.sqrt(
-            Math.pow(targetPos[0] - ballPos[0], 2) +
-            Math.pow(targetPos[2] - ballPos[2], 2)
-        );
-
-        // Power 100% = 30 yards max for putter
         const puttDist = selectedClub.maxDist * (power / 100);
-
-        // Direction: simple straight to hole or slight error?
-        // Vector to hole
         const dir = new THREE.Vector3(targetPos[0] - ballPos[0], 0, targetPos[2] - ballPos[2]).normalize();
+        velocityRef.current.copy(dir).multiplyScalar(puttDist * 0.15);
 
-        // Velocity for rolling (fake friction deaccel later)
-        // v^2 = 2*a*d -> v = sqrt(2*a*d). Let's just move linearly for simulation simplicity in loop
-        velocityRef.current.copy(dir).multiplyScalar(puttDist * 0.1); // Scaled speed
-
-        // Putting "mode" for physics implies ground movement
-        setGameMode('putting_active'); // distinct from 'putting' view
+        setGameMode('putting_active');
         isSimulatingRef.current = true;
-        setShotsLeft(prev => prev - 1);
+        setStrokeCount(s => s + 1);
     };
 
-    // --- Physics Loop ---
-    // Using a custom component to hook into useFrame inside Canvas
+    // Physics Loop
     const PhysicsEngine = () => {
         useFrame((state, delta) => {
             if (!isSimulatingRef.current) return;
 
             const pos = ballRef.current;
             const vel = velocityRef.current;
+            const gravity = 9.8;
 
             if (gameMode === 'flying') {
                 // Air Physics
-                pos.addScaledVector(vel, delta * 2); // Time speedup x2
-                vel.y -= gravity * delta * 2;
+                pos.addScaledVector(vel, delta * 3); // Faster sim
+                vel.y -= gravity * delta * 3;
 
                 // Ground Check
                 if (pos.y <= 0.3) {
                     pos.y = 0.3;
                     isSimulatingRef.current = false;
 
-                    // Landing logic
-                    const distToHole = pos.distanceTo(new THREE.Vector3(...targetPos));
-                    setBallPos([pos.x, pos.y, pos.z]); // Update React state
+                    // Check Bunker
+                    let inBunker = false;
+                    for (let b of bunkers) {
+                        // Simple box/circle check
+                        const dx = pos.x - b.pos[0];
+                        const dz = pos.z - b.pos[2];
+                        if (Math.abs(dx) < b.width / 1.5 && Math.abs(dz) < b.length / 1.5) {
+                            inBunker = true;
+                            break;
+                        }
+                    }
+                    isInBunkerRef.current = inBunker;
 
-                    if (distToHole < 1) {
-                        setScore(s => s + 1000);
-                        setMessage("¡HOYO EN UNO! 🦅");
-                        setGameMode('hole-in');
+                    const distToHole = pos.distanceTo(new THREE.Vector3(...targetPos));
+                    setBallPos([pos.x, pos.y, pos.z]);
+
+                    if (distToHole < 0.5) { // Dunking it
+                        endHole();
+                    } else if (inBunker) {
+                        setGameMode('tee'); // Back to address (but in bunker)
+                        setSelectedClub(CLUBS[5]); // SW
+                        setMessage(`¡Caíste en el Bunker! Usa el SW.`);
                     } else if (distToHole < 20) {
                         setGameMode('putting');
-                        setSelectedClub(CLUBS[4]); // Putter
-                        setMessage(`¡En el Green! Distancia: ${distToHole.toFixed(1)}y. Usa el Putter.`);
+                        setSelectedClub(CLUBS[6]); // Putter
+                        setMessage(`En el Green. A ${distToHole.toFixed(1)}y.`);
                     } else {
-                        setGameMode('landed'); // Ready for next shot (chip/approach)
-                        // If still far, maybe keep same club or suggest
-                        setMessage(`Tiro finalizado. Distancia al hoyo: ${distToHole.toFixed(1)}y`);
+                        setGameMode('tee'); // Address for next shot
+                        // Auto club suggest
+                        const remDist = distToHole;
+                        const bestClub = CLUBS.find(c => c.maxDist >= remDist) || CLUBS[0];
+                        setSelectedClub(bestClub);
+                        setMessage(`${remDist.toFixed(0)}y al hoyo.`);
                     }
                 } else {
-                    // Only update react state occasionally to save renders? 
-                    // Or update ref-based camera lookAt
+                    setBallPos([pos.x, pos.y, pos.z]);
                 }
-                // Force update view occasionally or use refs for smooth cam
-                // For this simple demo, we rely on component re-render on stop, 
-                // OR we can update a ref that Camera reads.
-                // Let's update react state for Ball mesh every frame? Expensive but simplest for React.
-                // Better: update mesh ref directly.
-                // We will stick to state update on land, but visual mesh update in this loop.
-
-                // Actually, we need to update the visual Mesh.
-                // But the Ball is a React component. 
-                // Let's use setBallPos for simple smooth animation if simple enough, or use ref.
-                setBallPos([pos.x, pos.y, pos.z]);
             }
-
             else if (gameMode === 'putting_active') {
-                // Rolling
-                // Simple friction
                 pos.addScaledVector(vel, delta * 5);
-                vel.multiplyScalar(0.95); // Friction
+                vel.multiplyScalar(0.96); // Friction
 
                 if (vel.length() < 0.1) {
                     isSimulatingRef.current = false;
-                    // Check result
                     const finalPos = new THREE.Vector3(pos.x, 0, pos.z);
                     const holePos = new THREE.Vector3(targetPos[0], 0, targetPos[2]);
                     const dist = finalPos.distanceTo(holePos);
 
                     setBallPos([pos.x, 0.3, pos.z]);
 
-                    if (dist < 1.0) { // Generous hole size
-                        setScore(s => s + 500);
-                        setMessage("¡ADENTRO! ⛳");
-                        setTimeout(resetHole, 2000);
+                    if (dist < 1.0) {
+                        endHole();
                     } else {
-                        setGameMode('putting'); // Still putting
-                        setMessage(`Cerca... a ${dist.toFixed(1)}y.`);
+                        setGameMode('putting');
+                        setMessage(`¡Cerca! A ${dist.toFixed(1)}y.`);
                     }
                 }
                 setBallPos([pos.x, 0.3, pos.z]);
@@ -286,111 +315,175 @@ const GolfSimulator = () => {
         return null;
     };
 
+    const endHole = () => {
+        setGameMode('hole-out');
+        setBallPos(targetPos); // Snap to cup
+
+        let res = "";
+        const diff = strokeCount + 1 - holePar; // +1 because current stroke just finished
+        if (diff <= -2) res = "🦅 ¡EAGLE!";
+        else if (diff === -1) res = "🐦 ¡BIRDIE!";
+        else if (diff === 0) res = "😐 PAR";
+        else if (diff === 1) res = "😕 BOGEY";
+        else res = "💀 DOBLE BOGEY o +";
+
+        if (strokeCount + 1 === 1) res = "🏆 ¡HOYO EN UNO!";
+
+        setMessage(`${res} - Total: ${strokeCount + 1} golpes.`);
+    };
+
     return (
-        <div className="w-full h-screen pb-safe flex flex-col bg-gray-900">
+        <div className="w-full h-screen pb-safe flex flex-col bg-gray-900 font-sans">
             {/* 3D Viewport */}
-            <div className="flex-grow relative">
-                <Canvas shadows camera={{ position: [0, 5, -5], fov: 50 }}>
-                    {/* Environment */}
+            <div className="flex-grow relative overflow-hidden">
+                <Canvas shadows camera={{ position: [0, 5, -5], fov: 60 }}>
                     <Suspense fallback={null}>
-                        <Sky sunPosition={[100, 20, 100]} />
-                        <ambientLight intensity={0.5} />
-                        <directionalLight
-                            position={[10, 20, 5]}
-                            intensity={1}
-                            castShadow
-                            shadow-mapSize={[1024, 1024]}
-                        />
-                        <ContactShadows resolution={512} scale={100} blur={4} opacity={0.5} far={10} color="#000000" />
+                        <Sky sunPosition={[100, 40, 100]} />
+                        <ambientLight intensity={0.6} />
+                        <directionalLight position={[10, 40, 10]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
+                        <ContactShadows resolution={512} scale={200} blur={2} opacity={0.4} far={20} color="#000000" />
                     </Suspense>
 
-                    {/* Game Objects */}
                     <Terrain />
                     <Ball position={ballPos} />
                     <Flag position={targetPos} />
+                    {bunkers.map((b, i) => <Bunker key={i} position={b.pos} width={b.width} length={b.length} />)}
 
-                    {/* Logic */}
                     <PhysicsEngine />
                     <GameCamera ballPos={ballPos} targetPos={targetPos} mode={gameMode} />
 
-                    {/* Helper Grid */}
-                    <gridHelper args={[1000, 100]} position={[0, 0.1, 0]} />
+                    <gridHelper args={[2000, 200]} position={[0, 0.1, 0]} />
                 </Canvas>
 
                 {/* HUD Overlay */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between text-white drop-shadow-md pointer-events-none">
-                    <div>
-                        <h2 className="text-2xl font-bold italic">Simulador 3D</h2>
-                        <p className="text-yellow-400 font-bold text-lg">{score} Puntos</p>
+                <div className="absolute top-4 left-4 right-4 flex justify-between text-white drop-shadow-md pointer-events-none z-10">
+                    <div className="bg-black/30 p-2 rounded-xl backdrop-blur-sm">
+                        <h2 className="text-xl font-bold italic">Caddy 3D</h2>
+                        <p className="text-yellow-400 font-bold text-md">Hoyo {holePar === 3 ? '#' : 'Random'}</p>
                     </div>
-                    <div className="text-right">
-                        <p className="text-sm uppercase opacity-80">Tiros Restantes</p>
-                        <p className="text-3xl font-bold">{shotsLeft}</p>
-                    </div>
-                </div>
-
-                {/* Center Message */}
-                <div className="absolute top-1/4 left-0 right-0 text-center pointer-events-none">
-                    <span className="bg-black/50 text-white px-4 py-2 rounded-full text-lg font-bold backdrop-blur-sm">
-                        {message}
-                    </span>
-                </div>
-            </div>
-
-            {/* Controls Panel */}
-            <div className="bg-white p-4 pb-8 rounded-t-3xl shadow-2xl z-10">
-                <div className="flex justify-between items-center mb-4">
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Palo</label>
-                        <div className="flex overflow-x-auto gap-2 scrollbar-hide">
-                            {gameMode === 'putting' ? (
-                                <button className="px-4 py-2 bg-golf-deep text-white rounded-lg font-bold shadow-md">
-                                    Putter (Auto)
-                                </button>
-                            ) : (
-                                CLUBS.filter(c => c.name !== 'Putter').map(c => (
-                                    <button
-                                        key={c.name}
-                                        onClick={() => setSelectedClub(c)}
-                                        className={`px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition ${selectedClub.name === c.name ? 'bg-golf-deep text-white shadow-md' : 'bg-gray-100 text-gray-600'}`}
-                                    >
-                                        {c.name}
-                                    </button>
-                                ))
-                            )}
+                    <div className="text-right bg-black/30 p-2 rounded-xl backdrop-blur-sm">
+                        <div className="flex gap-4">
+                            <div>
+                                <p className="text-[10px] uppercase opacity-80">Par</p>
+                                <p className="text-2xl font-bold">{holePar}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] uppercase opacity-80">Golpes</p>
+                                <p className="text-2xl font-bold text-white">{strokeCount}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="mb-6">
-                    <div className="flex justify-between text-sm font-bold mb-2">
-                        <span>Potencia</span>
-                        <span className="text-golf-deep">{power}%</span>
+                {/* Center Message */}
+                {message && (
+                    <div className="absolute top-1/4 left-0 right-0 text-center pointer-events-none z-10 animate-fade-in-up">
+                        <span className="bg-gradient-to-r from-golf-deep to-black text-white px-6 py-3 rounded-full text-lg font-bold shadow-xl border-2 border-white/20">
+                            {message}
+                        </span>
                     </div>
-                    <input
-                        type="range"
-                        min="10"
-                        max="100"
-                        value={power}
-                        onChange={(e) => setPower(e.target.value)}
-                        className="w-full h-6 bg-gray-200 rounded-full appearance-none cursor-pointer accent-golf-deep"
-                    />
-                </div>
+                )}
 
-                <button
-                    onClick={gameMode === 'putting' ? handlePutt : handleSwing}
-                    disabled={shotsLeft <= 0 || isSimulatingRef.current}
-                    className={`w-full py-4 rounded-2xl font-black text-xl shadow-lg transition transform active:scale-95 ${gameMode === 'putting' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gradient-to-r from-elegant-gold to-yellow-500 text-golf-deep hover:brightness-110'}`}
-                >
-                    {shotsLeft <= 0 ? "Juego Terminado - Reiniciar" : (gameMode === 'putting' ? "⛳ PUTT ⛳" : "🏌️ GOPEAR")}
-                </button>
+                {/* Intro / Outline */}
+                {gameMode === 'intro' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20 backdrop-blur-[2px]">
+                        <div className="text-center bg-white p-8 rounded-3xl shadow-2xl max-w-sm mx-4 animate-scale-in">
+                            <h3 className="text-4xl font-black text-golf-deep mb-2">Hoyo Generado</h3>
+                            <div className="flex justify-center gap-4 my-6 text-gray-700">
+                                <div className="text-center">
+                                    <div className="text-sm font-bold uppercase">Par</div>
+                                    <div className="text-3xl font-black">{holePar}</div>
+                                </div>
+                                <div className="text-center border-l pl-4">
+                                    <div className="text-sm font-bold uppercase">Distancia</div>
+                                    <div className="text-3xl font-black">{holeDist}y</div>
+                                </div>
+                            </div>
+                            <button onClick={startGame} className="w-full bg-elegant-gold hover:bg-yellow-400 text-golf-deep font-black py-4 rounded-xl text-xl shadow-lg transition">
+                                ⛳ COMENZAR
+                            </button>
+                        </div>
+                    </div>
+                )}
 
-                {shotsLeft <= 0 && (
-                    <button onClick={resetHole} className="w-full mt-2 py-2 text-gray-500 font-bold underline">
-                        Reiniciar
-                    </button>
+                {gameMode === 'hole-out' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30">
+                        <div className="text-center bg-white p-8 rounded-3xl shadow-2xl transform scale-110">
+                            <h3 className="text-5xl mb-4">🙌</h3>
+                            <h3 className="text-3xl font-black text-golf-deep mb-2">¡Hoyo Terminado!</h3>
+                            <p className="text-xl text-gray-600 mb-6">{message}</p>
+                            <div className="flex gap-4">
+                                <button onClick={generateHole} className="flex-1 bg-golf-deep text-white font-bold py-3 px-6 rounded-xl hover:bg-golf-dark transition">
+                                    Siguiente Hoyo ➡️
+                                </button>
+                                <button onClick={() => { setStrokeCount(0); generateHole(); }} className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl hover:bg-gray-300">
+                                    Reiniciar 🔄
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
+
+            {/* Controls Panel */}
+            {gameMode !== 'intro' && gameMode !== 'hole-out' && (
+                <div className="bg-white p-4 pb-8 rounded-t-3xl shadow-2xl z-20">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="flex-1 overflow-hidden">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Palo Seleccionado</label>
+                            <div className="flex overflow-x-auto gap-2 scrollbar-hide pb-1">
+                                {gameMode === 'putting' ? (
+                                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold shadow-md w-full">
+                                        Putter (Green)
+                                    </button>
+                                ) : (
+                                    CLUBS.filter(c => c.name !== 'Putter').map(c => (
+                                        <button
+                                            key={c.name}
+                                            onClick={() => setSelectedClub(c)}
+                                            className={`px-3 py-3 rounded-xl text-xs font-bold whitespace-nowrap transition border ${selectedClub.name === c.name ? 'bg-golf-deep text-white border-golf-deep shadow-md' : 'bg-gray-50 text-gray-500 border-gray-100'}`}
+                                        >
+                                            {c.name} ({c.maxDist}y)
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <div className="flex justify-between text-xs font-bold mb-2 uppercase text-gray-500">
+                            <span>Potencia</span>
+                            <span className="text-golf-deep">{power}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            value={power}
+                            onChange={(e) => setPower(e.target.value)}
+                            className="w-full h-4 bg-gray-200 rounded-full appearance-none cursor-pointer accent-golf-deep"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={generateHole}
+                            className="p-4 bg-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-200 transition"
+                            title="Reiniciar Hoyo"
+                        >
+                            🔄
+                        </button>
+                        <button
+                            onClick={gameMode === 'putting' ? handlePutt : handleSwing}
+                            disabled={isSimulatingRef.current}
+                            className={`flex-1 py-4 rounded-2xl font-black text-xl shadow-lg transition transform active:scale-95 ${gameMode === 'putting' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gradient-to-r from-elegant-gold to-yellow-500 text-golf-deep hover:brightness-110'}`}
+                        >
+                            {isSimulatingRef.current ? "Volando..." : (gameMode === 'putting' ? "⛳ PUTT" : "🏌️ GOLPEAR")}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
