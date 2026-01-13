@@ -29,6 +29,11 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#e6f4ea'
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
       }
     })
   ],
