@@ -72,7 +72,11 @@ const resources = {
                 description: "Esta aplicación es tu compañero inteligente de golf. Utiliza GPS para calcular distancias precisas al green, analiza las condiciones del viento y utiliza Inteligencia Artificial para sugerirte el palo ideal para cada golpe. Lleva el conteo de golpes de múltiples jugadores y calcula el ganador final considerando el hándicap.",
                 developer: "Desarrollo por Ariel Bulacio año 2026",
                 rights: "todos los derechos reservados",
-                devMode: "Modo Desarrollador"
+                devMode: "Modo Desarrollador",
+                contact: "Sugerencias o agregar canchas:",
+                whatsapp: "WhatsApp: +54 9 11 6898-7786",
+                sponsorsTitle: "Nuestros Sponsors",
+                sponsorsDesc: "Gracias a ellos esta app sigue funcionando gratis para vos."
             },
             playerType: {
                 Beginner: "Principiante",
@@ -153,7 +157,11 @@ const resources = {
                 description: "This application is your intelligent golf companion. It uses GPS to calculate accurate distances to the green, analyzes wind conditions, and uses Artificial Intelligence to suggest the ideal club for each shot. It tracks strokes for multiple players and calculates the final winner considering handicap.",
                 developer: "Developed by Ariel Bulacio year 2026",
                 rights: "all rights reserved",
-                devMode: "Dev Mode"
+                devMode: "Dev Mode",
+                contact: "Suggestions or add courses:",
+                whatsapp: "WhatsApp: +54 9 11 6898-7786",
+                sponsorsTitle: "Our Sponsors",
+                sponsorsDesc: "Thanks to them this app keeps running free for you."
             },
             playerType: {
                 Beginner: "Beginner",

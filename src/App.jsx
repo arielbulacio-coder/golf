@@ -417,13 +417,37 @@ function App() {
         )}
 
         {view === 'credits' && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto text-center border-t-8 border-golf-deep">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto text-center border-t-8 border-golf-deep animate-fade-in">
             <h2 className="text-3xl font-bold text-golf-deep mb-6">{t('credits.title')}</h2>
             <div className="p-4 bg-golf-light/30 rounded-xl mb-6">
               <p className="text-lg leading-relaxed text-gray-700">
                 {t('credits.description')}
               </p>
             </div>
+
+            <div className="border-t border-gray-100 pt-6 my-6">
+              <h3 className="text-xl font-bold text-golf-deep mb-2">📞 {t('credits.contact')}</h3>
+              <a
+                href="https://wa.me/5491168987786"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-green-600 transition"
+              >
+                <span>💬</span> {t('credits.whatsapp')}
+              </a>
+            </div>
+
+            <div className="border-t border-gray-100 pt-6 my-6 bg-gray-50 rounded-xl p-4">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">🤝 {t('credits.sponsorsTitle')}</h3>
+              <p className="text-sm text-gray-500 italic mb-4">{t('credits.sponsorsDesc')}</p>
+              <div className="flex flex-wrap justify-center gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                {/* Placeholder Sponsors - Replace with real logos */}
+                <div className="w-24 h-12 bg-gray-300 rounded flex items-center justify-center font-bold text-gray-500">Sponsor 1</div>
+                <div className="w-24 h-12 bg-gray-300 rounded flex items-center justify-center font-bold text-gray-500">Sponsor 2</div>
+                <div className="w-24 h-12 bg-gray-300 rounded flex items-center justify-center font-bold text-gray-500">Sponsor 3</div>
+              </div>
+            </div>
+
             <div className="flex justify-center space-x-4 mb-8">
               <span className="text-4xl">⛳</span>
               <span className="text-4xl">🤖</span>
