@@ -77,6 +77,25 @@ const resources = {
             playerType: {
                 Beginner: "Principiante",
                 Professional: "Profesional"
+            },
+            training: {
+                title: "Entrenamiento & Estadísticas",
+                logShot: "Registrar Golpe",
+                stats: "Estadísticas",
+                selectClub: "Seleccionar Palo",
+                distance: "Distancia",
+                outcome: "Resultado",
+                saveShot: "Guardar Golpe",
+                recentShots: "Golpes Recientes",
+                noData: "No hay datos registrados aún.",
+                avgDist: "Distancia Media",
+                accuracy: "Precisión",
+                straight: "Recto",
+                left: "A la Izquierda",
+                right: "A la Derecha",
+                short: "Corto",
+                long: "Largo",
+                duff: "Filazo/Sapo"
             }
         }
     },

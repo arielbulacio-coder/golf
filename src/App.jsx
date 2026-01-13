@@ -10,8 +10,11 @@ import GamesHistory from './components/GamesHistory';
 import GolfRules from './components/GolfRules';
 import GolfClubs from './components/GolfClubs';
 import GolfSimulator from './components/GolfSimulator';
+import TrainingView from './components/TrainingView';
 
 function App() {
+
+
   const { t, i18n } = useTranslation();
   const [currentCourse, setCurrentCourse] = useState(courses[0]);
   const [currentHoleNum, setCurrentHoleNum] = useState(1);
@@ -268,6 +271,7 @@ function App() {
             <button onClick={() => setView('history')} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
             <button onClick={() => setView('weather')} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
             <button onClick={() => setView('simulator')} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
+            <button onClick={() => setView('training')} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
             <button onClick={() => setView('rules')} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
             <button onClick={() => setView('clubs')} className={`hover:text-golf-accent transition ${view === 'clubs' ? 'text-golf-accent' : 'opacity-80'}`}>🎒 {t('nav.clubs')}</button>
             <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
@@ -351,6 +355,7 @@ function App() {
         {view === 'rules' && <GolfRules />}
         {view === 'clubs' && <GolfClubs />}
         {view === 'simulator' && <GolfSimulator />}
+        {view === 'training' && <TrainingView />}
 
         {/* ... other views ... */}
 
