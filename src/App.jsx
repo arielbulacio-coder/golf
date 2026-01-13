@@ -278,7 +278,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto py-6 px-4 flex-grow w-full overflow-y-auto overscroll-y-contain scroll-smooth pb-safe">
+      <main className="max-w-4xl mx-auto py-4 px-4 flex-grow w-full overflow-y-auto overscroll-y-contain scroll-smooth pb-safe">
         {(view === 'players' || setupMode) && (
           <div className="animate-fade-in-up">
             {setupMode && (
@@ -416,11 +416,6 @@ function App() {
             <CalibrationView />
           </div>
         )}
-        <footer className="bg-golf-deep/10 p-4 text-center mt-8">
-          <p className="text-sm text-golf-deep font-medium">
-            {t('credits.developer')}, {t('credits.rights')}
-          </p>
-        </footer>
       </main>
     </div>
   );
