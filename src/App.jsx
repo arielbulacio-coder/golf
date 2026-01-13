@@ -15,7 +15,8 @@ function App() {
   const { t, i18n } = useTranslation();
   const [currentCourse, setCurrentCourse] = useState(courses[0]);
   const [currentHoleNum, setCurrentHoleNum] = useState(1);
-  const [players, setPlayers] = useState(initialPlayers);
+  const [players, setPlayers] = useState([]);
+  const [setupMode, setSetupMode] = useState(true);
   const [scores, setScores] = useState({});
   const [view, setView] = useState('hole');
   const [winner, setWinner] = useState(null);
@@ -34,7 +35,12 @@ function App() {
   // Load players from backend on start
   useEffect(() => {
     if (window.location.hostname.includes('github.io')) {
-      setPlayers(initialPlayers);
+      // Load from local storage if needed, or start empty
+      const saved = localStorage.getItem('golf_players');
+      if (saved) {
+        setPlayers(JSON.parse(saved));
+        setSetupMode(false);
+      }
       return;
     }
 
@@ -43,9 +49,15 @@ function App() {
       .then(data => {
         if (data.data && data.data.length > 0) {
           setPlayers(data.data);
+          setSetupMode(false);
+        } else {
+          setSetupMode(true);
         }
       })
-      .catch(err => console.log("Offline or no backend players"));
+      .catch(err => {
+        console.log("Offline or no backend players");
+        setSetupMode(true);
+      });
   }, []);
 
   // Fetch Weather based on Course Location
@@ -208,7 +220,34 @@ function App() {
       </nav>
 
       <main className="max-w-4xl mx-auto py-6 px-4 flex-grow w-full overflow-y-auto overscroll-y-contain scroll-smooth pb-safe">
-        {view === 'hole' && (
+        {(view === 'players' || setupMode) && (
+          <div className="animate-fade-in-up">
+            {setupMode && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                <p className="font-bold text-yellow-700">¡Bienvenido! Agrega los jugadores para comenzar.</p>
+              </div>
+            )}
+            <PlayersManager
+              scoringType={scoringType}
+              onSetScoringType={setScoringType}
+              onPlayersChange={(updatedPlayers) => {
+                setPlayers(updatedPlayers);
+                if (window.location.hostname.includes('github.io')) {
+                  localStorage.setItem('golf_players', JSON.stringify(updatedPlayers));
+                }
+                if (updatedPlayers.length > 0) setSetupMode(false);
+              }}
+              playersList={players}
+            />
+            {!setupMode && view === 'players' && (
+              <button onClick={() => setView('hole')} className="w-full mt-4 bg-golf-deep text-white py-3 rounded-xl font-bold shadow-lg">
+                ✅ Volver al Juego
+              </button>
+            )}
+          </div>
+        )}
+
+        {!setupMode && view === 'hole' && (
           <HoleView
             hole={currentHole}
             players={players}
@@ -255,14 +294,7 @@ function App() {
           </div>
         )}
 
-        {view === 'players' && (
-          <div className="animate-fade-in-up">
-            <PlayersManager
-              scoringType={scoringType}
-              onSetScoringType={setScoringType}
-            />
-          </div>
-        )}
+
 
         {view === 'results' && winner && (
           <div className="text-center py-10 animate-fade-in-up">

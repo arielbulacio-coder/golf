@@ -36,7 +36,5 @@ export const courses = [
     }
 ];
 
-export const players = [
-    { id: 1, name: 'Ariel Bulacio', handicap: 25, type: 'Beginner' },
-    { id: 2, name: 'Luis María Vitelli', handicap: 12, type: 'Professional' }
-];
+export const players = [];
+

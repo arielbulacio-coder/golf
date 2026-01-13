@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
+const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType, onPlayersChange, playersList }) => {
     const { t } = useTranslation();
-    const [players, setPlayers] = useState([]);
+    const [players, setPlayers] = useState(playersList || []);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
     const [status, setStatus] = useState('');
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     useEffect(() => {
-        fetchPlayers();
-    }, []);
+        if (playersList) {
+            setPlayers(playersList);
+        } else {
+            fetchPlayers();
+        }
+    }, [playersList]);
 
     const fetchPlayers = () => {
+        if (window.location.hostname.includes('github.io')) return;
+
         fetch(`${API_URL}/api/players`)
             .then(res => res.json())
             .then(data => {
-                if (data.data) setPlayers(data.data);
+                if (data.data) {
+                    setPlayers(data.data);
+                    if (onPlayersChange) onPlayersChange(data.data);
+                }
             })
             .catch(err => console.error("Could not fetch players", err));
     };
@@ -25,16 +34,30 @@ const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
     const handleAddPlayer = () => {
         if (!newPlayerName || !newPlayerHandicap) return;
 
-        const payload = {
+        const newPlayer = {
+            id: Date.now(), // Temp ID for local
             name: newPlayerName,
             handicap: parseInt(newPlayerHandicap),
             type: parseInt(newPlayerHandicap) < 10 ? 'Professional' : 'Beginner'
         };
 
+        // If on GitHub Pages, use local state only
+        if (window.location.hostname.includes('github.io')) {
+            const updated = [...players, newPlayer];
+            setPlayers(updated);
+            if (onPlayersChange) onPlayersChange(updated);
+            setNewPlayerName('');
+            setNewPlayerHandicap('');
+            setStatus('Player added locally!');
+            setTimeout(() => setStatus(''), 2000);
+            return;
+        }
+
+        // Else try Backend
         fetch(`${API_URL}/api/players`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ ...newPlayer, id: undefined }) // Let DB assign ID
         })
             .then(res => res.json())
             .then(() => {
@@ -49,6 +72,13 @@ const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType }) => {
 
     const handleDeletePlayer = (id) => {
         if (!window.confirm(t('players.confirmDelete'))) return;
+
+        if (window.location.hostname.includes('github.io')) {
+            const updated = players.filter(p => p.id !== id);
+            setPlayers(updated);
+            if (onPlayersChange) onPlayersChange(updated);
+            return;
+        }
 
         fetch(`${API_URL}/api/players/${id}`, {
             method: 'DELETE'
