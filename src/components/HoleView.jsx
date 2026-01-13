@@ -72,10 +72,62 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
 
     return (
         <div className="flex flex-col min-h-full space-y-4 p-4 max-w-md mx-auto relative">
-            {/* ... other code ... */}
+            {/* Hole Preview Modal */}
+            {showPreview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={() => setShowPreview(false)}>
+                    <div className="relative max-w-lg w-full bg-white rounded-xl overflow-hidden shadow-2xl">
+                        <button className="absolute top-2 right-2 bg-white/50 rounded-full p-2 text-black hover:bg-white transition" onClick={() => setShowPreview(false)}>
+                            ✕
+                        </button>
+                        <img src={hole.image} alt={`Hole ${hole.number}`} className="w-full h-auto object-cover" />
+                        <div className="p-4 bg-golf-deep text-white">
+                            <h3 className="text-xl font-bold">{t('hole.title')} {hole.number} - {t('hole.par')} {hole.par}</h3>
+                            <p className="text-sm opacity-80">{t('hole.yards')} {hole.yards}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* Hole Header - slightly compacted to fit new highlights */}
-            {/* ... same hole header ... */}
+            {/* Hole Header */}
+            {locationError && (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded text-xs" role="alert">
+                    <p className="font-bold">GPS Alert</p>
+                    <p>{locationError}</p>
+                </div>
+            )}
+            <div
+                className="bg-golf-deep text-white rounded-2xl p-6 shadow-xl relative overflow-hidden group cursor-pointer"
+                onClick={() => setShowPreview(true)}
+            >
+                <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition duration-500">
+                    <img src={hole.image} alt="Hole Background" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-golf-deep via-golf-deep/80 to-transparent z-0"></div>
+
+                <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-bold leading-none -mr-4 -mt-4 z-0">
+                    {hole.number}
+                </div>
+
+                <div className="relative z-10">
+                    <div className="flex justify-between items-end mb-2">
+                        <div>
+                            <h2 className="text-3xl font-bold drop-shadow-md">{t('hole.title')} {hole.number}</h2>
+                            <span className="text-golf-accent font-medium uppercase tracking-wider drop-shadow-md">{t('hole.par')} {hole.par}</span>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-4xl font-bold drop-shadow-md">{distance}</div>
+                            <div className="text-xs opacity-80 uppercase tracking-widest drop-shadow-md">{t('hole.yards')}</div>
+                        </div>
+                    </div>
+                    {/* Compact Info Row */}
+                    <div className="mt-2 pt-2 border-t border-white/20 flex justify-between items-center text-sm">
+                        <div className="opacity-80">HCP {hole.handicap}</div>
+                        <div className="bg-white/20 px-2 py-0.5 rounded-full text-xs animate-pulse">
+                            🔍 Ver Foto
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* AI Caddy & Wind Highlight Container */}
             <div className="grid grid-cols-2 gap-3">
