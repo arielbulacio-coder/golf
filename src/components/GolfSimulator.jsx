@@ -362,9 +362,22 @@ const GolfSimulator = () => {
                         <div className="text-xl font-bold italic">Caddy 3D <span className="text-xs ml-1 bg-yellow-500 text-black px-1 rounded">v3.2</span></div>
                         <div className="text-sm font-bold text-gray-300">Par {holePar} • {holeDist}y</div>
                     </div>
-                    <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md text-right">
-                        <div className="text-xs text-gray-400 uppercase">Golpes</div>
-                        <div className="text-2xl font-black">{strokeCount}</div>
+
+                    {/* Sim Fitness Data */}
+                    <div className="flex gap-2 text-right">
+                        <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md hidden md:block">
+                            <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Fitness Sim</div>
+                            <div className="flex gap-3 text-xs font-bold text-gray-200">
+                                <div>👣 {((strokeCount * 50 + (holeDist - Math.max(0, holeDist - (strokeCount * 140)))) * 1.3).toFixed(0)}</div>
+                                <div>🔥 {(strokeCount * 5 + 2).toFixed(0)} kcal</div>
+                                <div>📏 {((strokeCount * 50 + holeDist) / 1000).toFixed(2)} km</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md">
+                            <div className="text-xs text-gray-400 uppercase">Golpes</div>
+                            <div className="text-2xl font-black">{strokeCount}</div>
+                        </div>
                     </div>
                 </div>
 
