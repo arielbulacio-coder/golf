@@ -17,9 +17,18 @@ const CLUBS = [
 
 // --- 3D Components ---
 
-function Ball({ position }) {
+function Ball({ positionRef }) {
+    const meshRef = useRef();
+
+    // Sync mesh position with ref on every frame for smooth animation without re-renders
+    useFrame(() => {
+        if (meshRef.current && positionRef.current) {
+            meshRef.current.position.copy(positionRef.current);
+        }
+    });
+
     return (
-        <mesh position={position} castShadow receiveShadow>
+        <mesh ref={meshRef} castShadow receiveShadow>
             <sphereGeometry args={[0.3, 32, 32]} />
             <meshStandardMaterial color="white" roughness={0.4} metalness={0.1} />
         </mesh>
@@ -68,16 +77,16 @@ function Terrain() {
     );
 }
 
-function GameCamera({ ballPos, targetPos, mode }) {
+function GameCamera({ ballRef, targetPos, mode }) {
     const { camera } = useThree();
     const targetVec = new THREE.Vector3(...targetPos);
-    const ballVec = new THREE.Vector3(...ballPos);
 
     useFrame((state) => {
+        // Current ball pos from ref
+        const ballVec = ballRef.current ? ballRef.current : new THREE.Vector3(0, 0.3, 0);
+
         if (mode === 'intro') {
             // Fly from high above green to tee
-            const t = state.clock.getElapsedTime();
-            // Camera starts high above the midpoint
             camera.position.lerp(new THREE.Vector3(targetVec.x / 2, 100, targetVec.z / 2 + 50), 0.05);
             camera.lookAt(targetVec.x / 2, 0, targetVec.z / 2);
         } else if (mode === 'putting') {
@@ -110,8 +119,15 @@ function GameCamera({ ballPos, targetPos, mode }) {
 const GolfSimulator = () => {
     const { t } = useTranslation();
 
-    // Game State
-    const [ballPos, setBallPos] = useState([0, 0.3, 0]);
+    // Game Physics State (Refs for performance)
+    const ballRef = useRef(new THREE.Vector3(0, 0.3, 0));
+    const velocityRef = useRef(new THREE.Vector3(0, 0, 0));
+    const isSimulatingRef = useRef(false);
+    const isInBunkerRef = useRef(false);
+    // Track ball landing pos for React updates (UI only) - we don't strictly need it for render if using refs, but good for react synch
+    const [uiSync, setUiSync] = useState(0); // Dummy state to force render when needed
+
+    // Game Logic State
     const [targetPos, setTargetPos] = useState([0, 0, 150]);
     const [bunkers, setBunkers] = useState([]);
 
@@ -125,12 +141,6 @@ const GolfSimulator = () => {
     // Shot Params
     const [selectedClub, setSelectedClub] = useState(CLUBS[2]);
     const [power, setPower] = useState(80);
-
-    // Physics Refs
-    const ballRef = useRef(new THREE.Vector3(0, 0.3, 0));
-    const velocityRef = useRef(new THREE.Vector3(0, 0, 0));
-    const isSimulatingRef = useRef(false);
-    const isInBunkerRef = useRef(false);
 
     useEffect(() => {
         generateHole();
@@ -156,8 +166,11 @@ const GolfSimulator = () => {
         setHolePar(par);
         setHoleDist(dist);
         setTargetPos([0, 0, dist]);
-        setBallPos([0, 0.3, 0]);
+
+        // Reset Ball Physics
         ballRef.current.set(0, 0.3, 0);
+        setUiSync(s => s + 1); // update
+
         setStrokeCount(0);
         setGameMode('intro'); // Start with intro view
         setMessage(`Hoyo Par ${par} - ${dist} Yardas`);
@@ -225,7 +238,8 @@ const GolfSimulator = () => {
     const handlePutt = () => {
         if (isSimulatingRef.current) return;
         const puttDist = selectedClub.maxDist * (power / 100);
-        const dir = new THREE.Vector3(targetPos[0] - ballPos[0], 0, targetPos[2] - ballPos[2]).normalize();
+        // Direction from CURRENT ball ref position
+        const dir = new THREE.Vector3(targetPos[0] - ballRef.current.x, 0, targetPos[2] - ballRef.current.z).normalize();
         velocityRef.current.copy(dir).multiplyScalar(puttDist * 0.15);
 
         setGameMode('putting_active');
@@ -238,7 +252,7 @@ const GolfSimulator = () => {
         useFrame((state, delta) => {
             if (!isSimulatingRef.current) return;
 
-            const pos = ballRef.current;
+            const pos = ballRef.current; // Direct ref mutation
             const vel = velocityRef.current;
             const gravity = 9.8;
 
@@ -252,10 +266,10 @@ const GolfSimulator = () => {
                     pos.y = 0.3;
                     isSimulatingRef.current = false;
 
+                    // Logic only runs ONCE when landing
                     // Check Bunker
                     let inBunker = false;
                     for (let b of bunkers) {
-                        // Simple box/circle check
                         const dx = pos.x - b.pos[0];
                         const dz = pos.z - b.pos[2];
                         if (Math.abs(dx) < b.width / 1.5 && Math.abs(dz) < b.length / 1.5) {
@@ -264,43 +278,43 @@ const GolfSimulator = () => {
                         }
                     }
                     isInBunkerRef.current = inBunker;
-
                     const distToHole = pos.distanceTo(new THREE.Vector3(...targetPos));
-                    setBallPos([pos.x, pos.y, pos.z]);
+
+                    // Update React State ONLY on land to sync UI
+                    setUiSync(s => s + 1);
 
                     if (distToHole < 0.5) { // Dunking it
                         endHole();
                     } else if (inBunker) {
-                        setGameMode('tee'); // Back to address (but in bunker)
-                        setSelectedClub(CLUBS[5]); // SW
+                        setGameMode('tee');
+                        setSelectedClub(CLUBS[5]);
                         setMessage(`¡Caíste en el Bunker! Usa el SW.`);
                     } else if (distToHole < 20) {
                         setGameMode('putting');
                         setSelectedClub(CLUBS[6]); // Putter
                         setMessage(`En el Green. A ${distToHole.toFixed(1)}y.`);
                     } else {
-                        setGameMode('tee'); // Address for next shot
-                        // Auto club suggest
+                        setGameMode('tee');
                         const remDist = distToHole;
                         const bestClub = CLUBS.find(c => c.maxDist >= remDist) || CLUBS[0];
                         setSelectedClub(bestClub);
                         setMessage(`${remDist.toFixed(0)}y al hoyo.`);
                     }
-                } else {
-                    setBallPos([pos.x, pos.y, pos.z]);
                 }
             }
             else if (gameMode === 'putting_active') {
+                // Rolling
                 pos.addScaledVector(vel, delta * 5);
                 vel.multiplyScalar(0.96); // Friction
 
                 if (vel.length() < 0.1) {
                     isSimulatingRef.current = false;
+                    // Check result
                     const finalPos = new THREE.Vector3(pos.x, 0, pos.z);
                     const holePos = new THREE.Vector3(targetPos[0], 0, targetPos[2]);
                     const dist = finalPos.distanceTo(holePos);
 
-                    setBallPos([pos.x, 0.3, pos.z]);
+                    setUiSync(s => s + 1); // Visual sync
 
                     if (dist < 1.0) {
                         endHole();
@@ -309,7 +323,6 @@ const GolfSimulator = () => {
                         setMessage(`¡Cerca! A ${dist.toFixed(1)}y.`);
                     }
                 }
-                setBallPos([pos.x, 0.3, pos.z]);
             }
         });
         return null;
@@ -317,7 +330,8 @@ const GolfSimulator = () => {
 
     const endHole = () => {
         setGameMode('hole-out');
-        setBallPos(targetPos); // Snap to cup
+        ballRef.current.set(...targetPos); // Snap visual
+        setUiSync(s => s + 1);
 
         let res = "";
         const diff = strokeCount + 1 - holePar; // +1 because current stroke just finished
@@ -345,12 +359,14 @@ const GolfSimulator = () => {
                     </Suspense>
 
                     <Terrain />
-                    <Ball position={ballPos} />
+                    {/* Pass REF to Ball, not state */}
+                    <Ball positionRef={ballRef} />
                     <Flag position={targetPos} />
                     {bunkers.map((b, i) => <Bunker key={i} position={b.pos} width={b.width} length={b.length} />)}
 
                     <PhysicsEngine />
-                    <GameCamera ballPos={ballPos} targetPos={targetPos} mode={gameMode} />
+                    {/* Camera also follows Ref */}
+                    <GameCamera ballRef={ballRef} targetPos={targetPos} mode={gameMode} />
 
                     <gridHelper args={[2000, 200]} position={[0, 0.1, 0]} />
                 </Canvas>
