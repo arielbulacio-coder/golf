@@ -84,7 +84,8 @@ function App() {
             description: "Weather Code " + data.current.weather_code, // ideally map codes to text
             humidity: data.current.relative_humidity_2m,
             feels_like: data.current.apparent_temperature,
-            daily: data.daily // Pass daily for forecast
+            daily: data.daily, // Pass daily for forecast
+            hourly: data.hourly // Pass hourly for day forecast
           });
         }
       })

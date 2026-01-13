@@ -8,8 +8,7 @@ const WeatherView = ({ weather }) => {
         return <div className="text-center p-10 text-gray-500">Loading Weather...</div>;
     }
 
-    // Data structure was flattened in App.jsx
-    const { temp, wind_speed, wind_dir, daily, description } = weather;
+    const { temp, wind_speed, wind_dir, daily, hourly, description } = weather;
     // Extract code from description string "Weather Code X" or passed directly
     const weatherCode = parseInt(description.split(' ')[2]) || 0;
 
@@ -24,6 +23,18 @@ const WeatherView = ({ weather }) => {
         if (code >= 95) return '⚡'; // Thunderstorm
         return '❓';
     };
+
+    // Calculate next 24 hours for hourly forecast
+    const now = new Date();
+    // Safety check for hourly data availability
+    const next24Hours = hourly ? hourly.time
+        .map((time, i) => ({
+            time: time,
+            temp: hourly.temperature_2m[i],
+            code: hourly.weather_code[i]
+        }))
+        .filter(item => new Date(item.time) >= now) // Filter for future hours
+        .slice(0, 24) : []; // Limit to next 24 hours
 
     return (
         <div className="animate-fade-in-up p-4 space-y-6">
@@ -50,6 +61,24 @@ const WeatherView = ({ weather }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Hourly Forecast Section */}
+            {next24Hours.length > 0 && (
+                <div className="space-y-3">
+                    <h3 className="text-xl font-bold text-golf-deep px-2">Pronóstico por Hora</h3>
+                    <div className="flex overflow-x-auto space-x-3 pb-4 px-2 scrollbar-hide">
+                        {next24Hours.map((item) => (
+                            <div key={item.time} className="flex-shrink-0 w-20 bg-white rounded-xl p-3 flex flex-col items-center shadow-lg border border-gray-100">
+                                <span className="text-xs font-bold text-gray-500">
+                                    {new Date(item.time).getHours()}:00
+                                </span>
+                                <span className="text-2xl my-2 drop-shadow-sm">{getWeatherIcon(item.code)}</span>
+                                <span className="font-bold text-gray-800 text-lg">{Math.round(item.temp)}°</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <h3 className="text-xl font-bold text-golf-deep px-2">{t('weather.forecast')}</h3>
 
