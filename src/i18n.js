@@ -8,6 +8,9 @@ const resources = {
             nav: {
                 play: "Jugar",
                 scorecard: "Tarjeta",
+                rules: "Reglas",
+                clubs: "Palos",
+                simulator: "Simulador",
                 credits: "Créditos",
                 players: "Jugadores",
                 history: "Historial"
@@ -83,6 +86,9 @@ const resources = {
             nav: {
                 play: "Play",
                 scorecard: "Scorecard",
+                rules: "Rules",
+                clubs: "Clubs",
+                simulator: "Simulator",
                 credits: "Credits",
                 players: "Players"
             },
