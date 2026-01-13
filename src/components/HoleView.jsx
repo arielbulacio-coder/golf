@@ -10,15 +10,10 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
     const [showPreview, setShowPreview] = useState(false);
 
     // Use current weather if available, otherwise fallback
-    const windSpeed = weather ? weather.windspeed : 10;
-    // Map degrees to simple direction for now, or pass degrees to logic
-    // For visual simplicity let's stick to head/tailwind logic assumption or just show direction
-    // In valid range 0-360. Let's assume Hole orientation is North (0) for simplicity unless we have hole bearing.
-    // If hole is North (0), wind 180 is Headwind.
-    // Real logic would require Course/Hole bearing data. 
-    // We will pass raw speed/direction to logic later if needed, but for now lets keep the variable names
-    // so we display real data.
-    const windDirection = weather ? weather.winddirection : 0;
+    // Fix: Match properties from App.jsx Open-Meteo fetch (wind_speed, wind_dir, temp)
+    const windSpeed = weather ? weather.wind_speed : 10;
+    const windDirection = weather ? weather.wind_dir : 0;
+    const temperature = weather ? weather.temp : 20; // Default 20C if no data
 
     const [locationError, setLocationError] = useState(null);
 
@@ -64,9 +59,7 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
 
     // Simplified club recommendation: use real wind direction
     useEffect(() => {
-        // windDirection from weather is wind FROM.
-        // Course: assumed North for simple logic. 
-        // We pass the raw direction and speed.
+        // windDirection is FROM. 
         setClub(recommendClub(distance, windSpeed, windDirection));
     }, [distance, windSpeed, windDirection]);
 
@@ -149,7 +142,11 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                 <div className="col-span-1 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 text-white shadow-lg border border-blue-400/20 relative overflow-hidden">
                     <div className="absolute bottom-0 left-0 -ml-2 -mb-2 w-12 h-12 bg-white/10 rounded-full blur-xl"></div>
 
-                    <div className="text-xs font-black text-blue-200 uppercase tracking-wider mb-1">Viento Real</div>
+                    <div className="flex justify-between items-start mb-1">
+                        <div className="text-xs font-black text-blue-200 uppercase tracking-wider">Clima Real</div>
+                        <div className="text-xs font-bold text-white bg-blue-500/30 px-1.5 rounded">{temperature}°C</div>
+                    </div>
+
                     <div className="flex items-center justify-between">
                         <div className="text-2xl font-bold">{windSpeed} <span className="text-xs font-normal">km/h</span></div>
                         <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full">
