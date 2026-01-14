@@ -102,16 +102,39 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
         </div>
       </div>
 
-      {/* Steps & Calories Summary (Combined for compactness) */}
-      <div>
-        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🦶 Pasos y Calorías (Total)</h4>
-        <div className="flex justify-between bg-orange-50 p-3 rounded-lg">
-          <div className="text-center">
-            <div className="text-xs text-gray-500">Pasos Totales</div>
+      {/* Steps Summary */}
+      <div className="mb-4">
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🦶 Pasos</h4>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-orange-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Semana</div>
+            <div className="font-bold text-gray-700">{historyStats.weeklySteps?.toLocaleString()}</div>
+          </div>
+          <div className="bg-orange-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Mes</div>
+            <div className="font-bold text-gray-700">{historyStats.monthlySteps?.toLocaleString()}</div>
+          </div>
+          <div className="bg-orange-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Total</div>
             <div className="font-bold text-orange-800">{historyStats.totalSteps?.toLocaleString()}</div>
           </div>
-          <div className="text-center border-l border-orange-200 pl-4">
-            <div className="text-xs text-gray-500">Kcal Totales</div>
+        </div>
+      </div>
+
+      {/* Calories Summary */}
+      <div>
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🔥 Calorías</h4>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-red-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Semana</div>
+            <div className="font-bold text-gray-700">{historyStats.weeklyCals?.toLocaleString()}</div>
+          </div>
+          <div className="bg-red-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Mes</div>
+            <div className="font-bold text-gray-700">{historyStats.monthlyCals?.toLocaleString()}</div>
+          </div>
+          <div className="bg-red-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Total</div>
             <div className="font-bold text-red-600">{historyStats.totalCals?.toLocaleString()}</div>
           </div>
         </div>
@@ -199,7 +222,11 @@ function App() {
     weeklyDist: 0,
     monthlyDist: 0,
     totalDist: 0,
+    weeklySteps: 0,
+    monthlySteps: 0,
     totalSteps: 0,
+    weeklyCals: 0,
+    monthlyCals: 0,
     totalCals: 0
   });
 
@@ -282,12 +309,21 @@ function App() {
             // Update Activity History Accumulators
             setActivityHistory(prevH => {
               const newH = { ...prevH };
+
+              // Distance
               newH.totalDist = (newH.totalDist || 0) + dMeters;
               newH.monthlyDist = (newH.monthlyDist || 0) + dMeters;
               newH.weeklyDist = (newH.weeklyDist || 0) + dMeters;
 
+              // Steps
               newH.totalSteps = (newH.totalSteps || 0) + dSteps;
+              newH.monthlySteps = (newH.monthlySteps || 0) + dSteps;
+              newH.weeklySteps = (newH.weeklySteps || 0) + dSteps;
+
+              // Cals
               newH.totalCals = (newH.totalCals || 0) + dCals;
+              newH.monthlyCals = (newH.monthlyCals || 0) + dCals;
+              newH.weeklyCals = (newH.weeklyCals || 0) + dCals;
 
               localStorage.setItem('golf_activity_history', JSON.stringify(newH));
               return newH;
