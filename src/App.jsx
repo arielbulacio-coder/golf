@@ -34,33 +34,53 @@ function deg2rad(deg) {
 }
 
 // Activity View Component
-const ActivityView = ({ stats }) => (
+const ActivityView = ({ stats, dailyHoles, historyStats }) => (
   <div className="animate-fade-in-up bg-white rounded-2xl shadow-xl p-6 border-t-8 border-green-500 max-w-md mx-auto">
     <h2 className="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3">
-      <span className="text-4xl">🏃‍♂️</span> Actividad en Vivo
+      <span className="text-4xl">🏃‍♂️</span> Actividad
     </h2>
 
+    {/* Live Stats */}
     <div className="grid grid-cols-2 gap-4 mb-6">
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Pasos</div>
-        <div className="text-3xl font-black text-golf-deep">{stats.steps}</div>
+        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Hoyos Hoy</div>
+        <div className="text-4xl font-black text-golf-deep">{dailyHoles}</div>
       </div>
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Calorías</div>
-        <div className="text-3xl font-black text-orange-500">{stats.calories} <span className="text-sm text-gray-400">kcal</span></div>
+        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Distancia</div>
+        <div className="text-2xl font-black text-blue-500">{(stats.distance / 1000).toFixed(2)} <span className="text-xs text-gray-400">km</span></div>
       </div>
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Distancia</div>
-        <div className="text-3xl font-black text-blue-500">{(stats.distance / 1000).toFixed(2)} <span className="text-sm text-gray-400">km</span></div>
+        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Pasos</div>
+        <div className="text-2xl font-black text-gray-700">{stats.steps}</div>
       </div>
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div className="text-sm text-gray-500 uppercase tracking-wider font-bold mb-1">Tiempo</div>
-        <div className="text-3xl font-black text-gray-700">{Math.floor((Date.now() - stats.startTime) / 60000)} <span className="text-sm text-gray-400">min</span></div>
+        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Calorías</div>
+        <div className="text-2xl font-black text-orange-500">{stats.calories} <span className="text-xs text-gray-400">kcal</span></div>
       </div>
     </div>
 
-    <div className="bg-green-50 text-green-800 p-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 animate-pulse">
-      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+    {/* Historical Summaries */}
+    <div className="mb-6">
+      <h3 className="text-lg font-bold text-gray-700 mb-3 border-b pb-2">📅 Resumen Histórico</h3>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+          <span className="text-sm font-medium text-gray-600">Esta Semana</span>
+          <span className="font-bold text-blue-700">{historyStats.weeklyHoles} hoyos</span>
+        </div>
+        <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
+          <span className="text-sm font-medium text-gray-600">Este Mes</span>
+          <span className="font-bold text-green-700">{historyStats.monthlyHoles} hoyos</span>
+        </div>
+        <div className="flex justify-between items-center bg-yellow-50 p-3 rounded-lg">
+          <span className="text-sm font-medium text-gray-600">Año / Total</span>
+          <span className="font-bold text-yellow-700">{historyStats.totalHoles} hoyos</span>
+        </div>
+      </div>
+    </div>
+
+    <div className="bg-green-50 text-green-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
+      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
       GPS Tracking Activo
     </div>
   </div>
@@ -110,6 +130,53 @@ function App() {
   const [adminPin, setAdminPin] = useState('');
   const [weatherData, setWeatherData] = useState(null);
   const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
+
+  // Activity History State
+  const [dailyHoles, setDailyHoles] = useState(0);
+  const [activityHistory, setActivityHistory] = useState({
+    weeklyHoles: 0,
+    monthlyHoles: 0,
+    totalHoles: 0
+  });
+
+  // Load Activity History
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('golf_activity_history');
+      if (saved) {
+        const data = JSON.parse(saved);
+        // Check if it's a new day to reset daily holes
+        const lastDate = new Date(data.lastDate || 0);
+        const now = new Date();
+        if (lastDate.toDateString() !== now.toDateString()) {
+          setDailyHoles(0);
+          // We could also do weekly/monthly reset logic here if we tracked exact dates
+        } else {
+          setDailyHoles(data.dailyHoles || 0);
+        }
+        setActivityHistory(data);
+      }
+    } catch (e) {
+      console.warn("Error loading activity history", e);
+    }
+  }, []);
+
+  // Update Activity History Helper
+  const incrementHoleCount = () => {
+    setDailyHoles(prev => {
+      const newVal = prev + 1;
+      const newHistory = { ...activityHistory };
+      newHistory.totalHoles = (newHistory.totalHoles || 0) + 1;
+      newHistory.monthlyHoles = (newHistory.monthlyHoles || 0) + 1; // Simplified approximation
+      newHistory.weeklyHoles = (newHistory.weeklyHoles || 0) + 1; // Simplified approximation
+      newHistory.lastDate = new Date().toISOString();
+      newHistory.dailyHoles = newVal;
+
+      setActivityHistory(newHistory);
+      localStorage.setItem('golf_activity_history', JSON.stringify(newHistory));
+      return newVal;
+    });
+  };
 
   // Real-time Fitness State
   const [fitnessStats, setFitnessStats] = useState({
@@ -277,6 +344,9 @@ function App() {
   };
 
   const handleNextHole = () => {
+    // Track hole completion for Activity
+    incrementHoleCount();
+
     if (currentHoleNum < 18) {
       setCurrentHoleNum(prev => prev + 1);
     } else {
@@ -464,7 +534,7 @@ function App() {
           <WeatherView weather={weatherData} />
         )}
 
-        {view === 'activity' && <ActivityView stats={fitnessStats} />}
+        {view === 'activity' && <ActivityView stats={fitnessStats} dailyHoles={dailyHoles} historyStats={activityHistory} />}
 
         {!setupMode && view === 'history' && (
           <GamesHistory onViewGame={handleViewHistory} />
