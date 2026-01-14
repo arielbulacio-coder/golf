@@ -378,7 +378,7 @@ const GolfSimulator = () => {
                 {/* HUD Overlay - Cleaned up */}
                 <div className="absolute top-4 left-4 right-4 flex justify-between text-white z-10 pointer-events-none">
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md">
-                        <div className="text-xl font-bold italic">Caddy 3D <span className="text-xs ml-1 bg-yellow-500 text-black px-1 rounded">v3.5</span></div>
+                        <div className="text-xl font-bold italic">Caddy 3D <span className="text-xs ml-1 bg-yellow-500 text-black px-1 rounded">v3.6</span></div>
                         <div className="text-sm font-bold text-gray-300">Par {holePar} • {holeDist}y</div>
                     </div>
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md text-right">
