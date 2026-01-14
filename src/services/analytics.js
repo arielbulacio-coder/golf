@@ -10,8 +10,13 @@ export const Analytics = {
         EVENT_HISTORY: 'event_history',
         EVENT_TRAINING: 'event_training',
 
-        // Locations (Simple counters for top anticipated users, dynamic creation is harder without backend)
-        LOC_AR: 'loc_ar', // Argentina
+        // Location Keys (Granular for Argentina)
+        LOC_AR_BA: 'loc_ar_ba',      // Buenos Aires Province
+        LOC_AR_CABA: 'loc_ar_caba',  // CABA
+        LOC_AR_CBA: 'loc_ar_cba',    // Córdoba
+        LOC_AR_PILAR: 'loc_ar_pilar', // Pilar (Golf Hub)
+
+        LOC_AR: 'loc_ar', // Argentina General
         LOC_MX: 'loc_mx', // Mexico
         LOC_US: 'loc_us', // USA
         LOC_ES: 'loc_es', // Spain
@@ -20,24 +25,32 @@ export const Analytics = {
 
     // Initialize/Increment Visit
     async trackVisit() {
-        // Prevent double counting in same session? (Optional, here we just count Page Loads/App Opens)
         if (sessionStorage.getItem('visited')) return;
         sessionStorage.setItem('visited', 'true');
 
         try {
-            // 1. Increment Global Visits
             await this.hit(this.KEYS.VISITS);
 
-            // 2. Resolve Location and increment country counter
             const loc = await this.getLocation();
-            if (loc) {
-                const countryCode = loc.countryCode.toLowerCase();
+            if (loc && loc.success) {
+                const countryCode = (loc.country_code || '').toLowerCase();
+                const region = (loc.region || '').toLowerCase();
+                const city = (loc.city || '').toLowerCase();
+
                 let key = this.KEYS.LOC_OTHER;
 
-                if (countryCode === 'ar') key = this.KEYS.LOC_AR;
-                if (countryCode === 'mx') key = this.KEYS.LOC_MX;
-                if (countryCode === 'us') key = this.KEYS.LOC_US;
-                if (countryCode === 'es') key = this.KEYS.LOC_ES;
+                if (countryCode === 'ar') {
+                    key = this.KEYS.LOC_AR;
+                    // Granular AR tracking
+                    if (region.includes('buenos aires')) await this.hit(this.KEYS.LOC_AR_BA);
+                    if (region.includes('ciudad aut') || region.includes('capital')) await this.hit(this.KEYS.LOC_AR_CABA);
+                    if (region.includes('cordoba') || region.includes('córdoba')) await this.hit(this.KEYS.LOC_AR_CBA);
+
+                    if (city.includes('pilar')) await this.hit(this.KEYS.LOC_AR_PILAR);
+                }
+                else if (countryCode === 'mx') key = this.KEYS.LOC_MX;
+                else if (countryCode === 'us') key = this.KEYS.LOC_US;
+                else if (countryCode === 'es') key = this.KEYS.LOC_ES;
 
                 await this.hit(key);
             }
@@ -47,7 +60,6 @@ export const Analytics = {
     },
 
     async trackEvent(eventName) {
-        // Map friendly names to keys
         let key = null;
         if (eventName === 'simulator') key = this.KEYS.EVENT_SIMULATOR;
         if (eventName === 'scorecard') key = this.KEYS.EVENT_SCORECARD;
@@ -55,67 +67,50 @@ export const Analytics = {
         if (eventName === 'training') key = this.KEYS.EVENT_TRAINING;
 
         if (key) {
-            try {
-                await this.hit(key);
-            } catch (e) { console.warn("Event track error", e); }
+            try { await this.hit(key); } catch (e) { console.warn("Event track error", e); }
         }
     },
 
-    // Helper to hit CountAPI
     async hit(key) {
         try {
-            // Using countapi.xyz
             await fetch(`https://api.countapi.xyz/hit/${this.NAMESPACE}/${key}`);
-        } catch (e) {
-            console.warn("CountAPI hit failed", e);
-        }
+        } catch (e) { console.warn("CountAPI hit failed", e); }
     },
 
-    // Get all stats for Admin View
     async getStats() {
-        const stats = {
-            visits: 0,
-            locations: {},
-            features: {}
-        };
-
         try {
-            // Fetch keys in parallel
-            const pVisits = this.get(this.KEYS.VISITS);
-
-            const pLocAR = this.get(this.KEYS.LOC_AR);
-            const pLocMX = this.get(this.KEYS.LOC_MX);
-            const pLocUS = this.get(this.KEYS.LOC_US);
-            const pLocES = this.get(this.KEYS.LOC_ES);
-            const pLocOther = this.get(this.KEYS.LOC_OTHER);
-
-            const pSim = this.get(this.KEYS.EVENT_SIMULATOR);
-            const pScore = this.get(this.KEYS.EVENT_SCORECARD);
-            const pHist = this.get(this.KEYS.EVENT_HISTORY);
-            const pTrain = this.get(this.KEYS.EVENT_TRAINING);
-
-            const results = await Promise.all([
-                pVisits,
-                pLocAR, pLocMX, pLocUS, pLocES, pLocOther,
-                pSim, pScore, pHist, pTrain
+            const [
+                visits,
+                ar, mx, us, es, other,
+                ar_ba, ar_caba, ar_cba, ar_pilar,
+                sim, score, hist, train
+            ] = await Promise.all([
+                this.get(this.KEYS.VISITS),
+                this.get(this.KEYS.LOC_AR), this.get(this.KEYS.LOC_MX), this.get(this.KEYS.LOC_US), this.get(this.KEYS.LOC_ES), this.get(this.KEYS.LOC_OTHER),
+                this.get(this.KEYS.LOC_AR_BA), this.get(this.KEYS.LOC_AR_CABA), this.get(this.KEYS.LOC_AR_CBA), this.get(this.KEYS.LOC_AR_PILAR),
+                this.get(this.KEYS.EVENT_SIMULATOR), this.get(this.KEYS.EVENT_SCORECARD), this.get(this.KEYS.EVENT_HISTORY), this.get(this.KEYS.EVENT_TRAINING)
             ]);
 
-            stats.visits = results[0];
-            stats.locations = {
-                'Argentina 🇦🇷': results[1],
-                'México 🇲🇽': results[2],
-                'USA 🇺🇸': results[3],
-                'España 🇪🇸': results[4],
-                'Otros 🌍': results[5]
+            return {
+                visits,
+                locations: {
+                    'Argentina 🇦🇷': ar,
+                    '↳ BsAs 🌾': ar_ba,
+                    '↳ CABA 🏙️': ar_caba,
+                    '↳ Pilar ⛳': ar_pilar,
+                    '↳ Córdoba ⛰️': ar_cba,
+                    'México 🇲🇽': mx,
+                    'USA 🇺🇸': us,
+                    'España 🇪🇸': es,
+                    'Otros 🌍': other
+                },
+                features: {
+                    'Simulador': sim,
+                    'Tarjeta': score,
+                    'Historial': hist,
+                    'Entrenamiento': train
+                }
             };
-            stats.features = {
-                'Simulador': results[6],
-                'Tarjeta': results[7],
-                'Historial': results[8],
-                'Entrenamiento': results[9]
-            };
-
-            return stats;
 
         } catch (e) {
             console.error("Failed to load stats", e);
@@ -128,22 +123,14 @@ export const Analytics = {
             const res = await fetch(`https://api.countapi.xyz/get/${this.NAMESPACE}/${key}`);
             const data = await res.json();
             return data.value || 0;
-        } catch (e) {
-            return 0;
-        }
+        } catch (e) { return 0; }
     },
 
-    // Get User Location from public IP API
     async getLocation() {
         try {
-            const res = await fetch('http://ip-api.com/json/');
-            const data = await res.json();
-            if (data.status === 'success') {
-                return data;
-            }
-            return null;
-        } catch (e) {
-            return null;
-        }
+            // Using ipwho.is (Free, HTTPS supported, No Key)
+            const res = await fetch('https://ipwho.is/');
+            return await res.json();
+        } catch (e) { return null; }
     }
 };
