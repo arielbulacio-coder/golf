@@ -63,20 +63,60 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
     {/* Historical Summaries */}
     <div className="mb-6">
       <h3 className="text-lg font-bold text-gray-700 mb-3 border-b pb-2">📅 Resumen Histórico</h3>
-      <div className="space-y-3">
-        <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
-          <span className="text-sm font-medium text-gray-600">Esta Semana</span>
-          <span className="font-bold text-blue-700">{historyStats.weeklyHoles} hoyos</span>
-        </div>
-        <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
-          <span className="text-sm font-medium text-gray-600">Este Mes</span>
-          <span className="font-bold text-green-700">{historyStats.monthlyHoles} hoyos</span>
-        </div>
-        <div className="flex justify-between items-center bg-yellow-50 p-3 rounded-lg">
-          <span className="text-sm font-medium text-gray-600">Año / Total</span>
-          <span className="font-bold text-yellow-700">{historyStats.totalHoles} hoyos</span>
+
+      {/* Holes Summary */}
+      <div className="mb-4">
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">⛳ Hoyos Jugados</h4>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-blue-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Semana</div>
+            <div className="font-bold text-blue-700">{historyStats.weeklyHoles}</div>
+          </div>
+          <div className="bg-green-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Mes</div>
+            <div className="font-bold text-green-700">{historyStats.monthlyHoles}</div>
+          </div>
+          <div className="bg-yellow-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Total</div>
+            <div className="font-bold text-yellow-700">{historyStats.totalHoles}</div>
+          </div>
         </div>
       </div>
+
+      {/* Distance Summary */}
+      <div className="mb-4">
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">📏 Distancia (km)</h4>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-gray-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Semana</div>
+            <div className="font-bold text-gray-700">{(historyStats.weeklyDist / 1000).toFixed(1)}</div>
+          </div>
+          <div className="bg-gray-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Mes</div>
+            <div className="font-bold text-gray-700">{(historyStats.monthlyDist / 1000).toFixed(1)}</div>
+          </div>
+          <div className="bg-gray-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Total</div>
+            <div className="font-bold text-gray-700">{(historyStats.totalDist / 1000).toFixed(1)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Steps & Calories Summary (Combined for compactness) */}
+      <div>
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🦶 Pasos y Calorías (Total)</h4>
+        <div className="flex justify-between bg-orange-50 p-3 rounded-lg">
+          <div className="text-center">
+            <div className="text-xs text-gray-500">Pasos Totales</div>
+            <div className="font-bold text-orange-800">{historyStats.totalSteps?.toLocaleString()}</div>
+          </div>
+          <div className="text-center border-l border-orange-200 pl-4">
+            <div className="text-xs text-gray-500">Kcal Totales</div>
+            <div className="font-bold text-red-600">{historyStats.totalCals?.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div className="bg-green-50 text-green-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
@@ -87,7 +127,7 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
 );
 
 function App() {
-  const APP_VERSION = 'v3.6';
+  const APP_VERSION = 'v3.7';
 
   // PWA Auto-Update Logic - AGGRESSIVE
   useEffect(() => {
@@ -154,7 +194,13 @@ function App() {
   const [activityHistory, setActivityHistory] = useState({
     weeklyHoles: 0,
     monthlyHoles: 0,
-    totalHoles: 0
+    totalHoles: 0,
+    // Add accumulated stats
+    weeklyDist: 0,
+    monthlyDist: 0,
+    totalDist: 0,
+    totalSteps: 0,
+    totalCals: 0
   });
 
   // Load Activity History
@@ -223,18 +269,30 @@ function App() {
 
           // Filter GPS jitter: only count movement > 5 meters
           if (dMeters > 5 && dMeters < 500) {
+            const dSteps = Math.floor(dMeters / 0.75);
+            const dCals = Math.floor(dMeters * 0.05 + ((Date.now() - prev.startTime) / 60000) * 1.5);
+
             setFitnessStats(prev => {
               const newDist = prev.distance + dMeters;
               const newSteps = Math.floor(newDist / 0.75);
               const newCals = Math.floor(newDist * 0.05 + ((Date.now() - prev.startTime) / 60000) * 1.5);
-
-              return {
-                ...prev,
-                distance: newDist,
-                steps: newSteps,
-                calories: newCals
-              };
+              return { ...prev, distance: newDist, steps: newSteps, calories: newCals };
             });
+
+            // Update Activity History Accumulators
+            setActivityHistory(prevH => {
+              const newH = { ...prevH };
+              newH.totalDist = (newH.totalDist || 0) + dMeters;
+              newH.monthlyDist = (newH.monthlyDist || 0) + dMeters;
+              newH.weeklyDist = (newH.weeklyDist || 0) + dMeters;
+
+              newH.totalSteps = (newH.totalSteps || 0) + dSteps;
+              newH.totalCals = (newH.totalCals || 0) + dCals;
+
+              localStorage.setItem('golf_activity_history', JSON.stringify(newH));
+              return newH;
+            });
+
             lastPosRef.current = { lat: latitude, lng: longitude };
           }
         } else {
