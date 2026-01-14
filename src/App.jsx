@@ -87,17 +87,36 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
 );
 
 function App() {
-  // PWA Auto-Update Logic
+  const APP_VERSION = 'v3.6';
+
+  // PWA Auto-Update Logic - AGGRESSIVE
   useEffect(() => {
+    // 1. Standard vite-plugin-pwa register
     const updateSW = registerSW({
       onRegisteredSW(swUrl, r) {
+        console.log('SW Registered:', swUrl);
+        // Check immediately
+        r && r.update();
+        // Check every interval
         r && setInterval(() => {
+          console.log('Checking for SW update...');
           r.update();
-        }, 60 * 1000); // Check for updates every minute
+        }, 60 * 1000);
+      },
+      onNeedRefresh() {
+        console.log('SW Need Refresh - Reloading...');
+        updateSW(true); // Force update
       }
     });
 
-    // Reload page when new SW takes control
+    // 2. Extra Safety: Force update on existing registrations
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.update();
+      });
+    }
+
+    // 3. Reload logic
     let refreshing = false;
     navigator.serviceWorker?.addEventListener('controllerchange', () => {
       if (!refreshing) {
@@ -106,7 +125,6 @@ function App() {
       }
     });
 
-    return () => { };
     return () => { };
   }, []);
 
@@ -466,7 +484,7 @@ function App() {
             {currentCourse.logo && <img src={currentCourse.logo} alt={currentCourse.name} className="h-12 w-12 rounded-full border-2 border-elegant-gold" />}
             <div>
               <h1 className="text-xl font-bold tracking-tight leading-none">{currentCourse.name}</h1>
-              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI v3.6</p>
+              <p className="text-xs text-golf-accent uppercase tracking-widest opacity-90">Caddy AI {APP_VERSION}</p>
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide mask-fade">
