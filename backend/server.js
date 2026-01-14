@@ -81,8 +81,6 @@ app.post('/api/calibrate', (req, res) => {
 
 // --- PLAYERS API ---
 
-// --- PLAYERS API ---
-
 app.get('/api/players', (req, res) => {
     const sql = "SELECT * FROM players";
     db.all(sql, [], (err, rows) => {

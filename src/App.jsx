@@ -11,6 +11,8 @@ import GolfRules from './components/GolfRules';
 import GolfClubs from './components/GolfClubs';
 import GolfSimulator from './components/GolfSimulator';
 import TrainingView from './components/TrainingView';
+import TrainingView from './components/TrainingView';
+import { Analytics } from './services/analytics';
 import { registerSW } from 'virtual:pwa-register';
 
 // Helper for distance between two lat/lng points in meters
@@ -85,6 +87,12 @@ function App() {
     });
 
     return () => { };
+    return () => { };
+  }, []);
+
+  // Track Visit Publicly (No Backend)
+  useEffect(() => {
+    Analytics.trackVisit();
   }, []);
 
 
@@ -97,6 +105,9 @@ function App() {
   const [view, setView] = useState('hole');
   const [winner, setWinner] = useState(null);
   const [historyGame, setHistoryGame] = useState(null);
+  const [adminStats, setAdminStats] = useState(null);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPin, setAdminPin] = useState('');
   const [weatherData, setWeatherData] = useState(null);
   const [scoringType, setScoringType] = useState('stroke_net'); // stroke_net, stableford, scratch
 
@@ -390,13 +401,13 @@ function App() {
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide mask-fade">
             <button onClick={() => setView('hole')} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
-            <button onClick={() => setView('scorecard')} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
+            <button onClick={() => { setView('scorecard'); Analytics.trackEvent('scorecard'); }} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
             <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
-            <button onClick={() => setView('history')} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
+            <button onClick={() => { setView('history'); Analytics.trackEvent('history'); }} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
             <button onClick={() => setView('weather')} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
             <button onClick={() => setView('activity')} className={`hover:text-golf-accent transition ${view === 'activity' ? 'text-golf-accent' : 'opacity-80'}`}>🏃Actividad</button>
-            <button onClick={() => setView('simulator')} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
-            <button onClick={() => setView('training')} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
+            <button onClick={() => { setView('simulator'); Analytics.trackEvent('simulator'); }} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
+            <button onClick={() => { setView('training'); Analytics.trackEvent('training'); }} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
             <button onClick={() => setView('rules')} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
             <button onClick={() => setView('clubs')} className={`hover:text-golf-accent transition ${view === 'clubs' ? 'text-golf-accent' : 'opacity-80'}`}>🎒 {t('nav.clubs')}</button>
             <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
@@ -563,8 +574,79 @@ function App() {
               <p className="text-golf-deep font-bold text-lg">{t('credits.developer')}</p>
               <p className="text-sm">© {t('credits.rights')}</p>
             </div>
-            <div className="mt-8 pt-8 border-t border-gray-100">
+            {/* Admin Stats Modal */}
+            {showAdminLogin && (
+              <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full animate-fade-in-up">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-gray-800">🔒 Admin Stats</h3>
+                    <button onClick={() => { setShowAdminLogin(false); setAdminStats(null); }} className="text-gray-400 hover:text-gray-600">✕</button>
+                  </div>
+
+                  {!adminStats ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">Ingresa el PIN de acceso:</p>
+                      <input
+                        type="password"
+                        value={adminPin}
+                        onChange={(e) => setAdminPin(e.target.value)}
+                        className="w-full text-center text-2xl font-bold tracking-widest border rounded p-2"
+                        placeholder="••••"
+                      />
+                      <button
+                        onClick={() => {
+                          if (adminPin === '1209') { // Hardcoded simple pin
+                            Analytics.getStats().then(setAdminStats);
+                          } else {
+                            alert("PIN Incorrecto");
+                          }
+                        }}
+                        className="w-full bg-golf-deep text-white py-2 rounded-lg font-bold"
+                      >
+                        Ingresar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                      <div className="bg-blue-50 p-4 rounded-lg text-center">
+                        <div className="text-sm text-gray-500 uppercase">Visitas Totales</div>
+                        <div className="text-4xl font-black text-blue-600">{adminStats.visits}</div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-sm border-b mb-2 pb-1">🌍 Por País</h4>
+                        {Object.entries(adminStats.locations).map(([k, v]) => (
+                          <div key={k} className="flex justify-between text-sm py-1 border-b border-gray-100 last:border-0">
+                            <span>{k}</span>
+                            <span className="font-bold text-golf-deep">{v}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-sm border-b mb-2 pb-1">🔥 Funciones Top</h4>
+                        {Object.entries(adminStats.features).sort((a, b) => b[1] - a[1]).map(([k, v]) => (
+                          <div key={k} className="flex justify-between text-sm py-1 border-b border-gray-100 last:border-0">
+                            <span>{k}</span>
+                            <span className="font-bold text-golf-deep">{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 pt-8 border-t border-gray-100 flex justify-between items-center">
               <button onClick={() => setView('calibrate')} className="text-xs text-gray-300 hover:text-red-500 transition">{t('credits.devMode')}</button>
+
+              <button
+                onClick={() => setShowAdminLogin(true)}
+                className="text-xs text-gray-300 hover:text-golf-deep transition flex items-center gap-1"
+              >
+                <span>🛡️</span> Admin
+              </button>
             </div>
           </div>
         )}

@@ -52,6 +52,7 @@ const db = new sqlite3Verbose.Database(dbPath, (err) => {
         date DATETIME DEFAULT CURRENT_TIMESTAMP,
         scores TEXT -- JSON string of scores
     )`);
+
     }
 });
 
