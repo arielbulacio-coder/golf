@@ -11,7 +11,7 @@ import GolfRules from './components/GolfRules';
 import GolfClubs from './components/GolfClubs';
 import GolfSimulator from './components/GolfSimulator';
 import TrainingView from './components/TrainingView';
-import TrainingView from './components/TrainingView';
+
 import { Analytics } from './services/analytics';
 import { registerSW } from 'virtual:pwa-register';
 
