@@ -86,7 +86,11 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
       {/* Distance Summary */}
       <div className="mb-4">
         <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">📏 Distancia (km)</h4>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="bg-gray-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Hoy</div>
+            <div className="font-bold text-gray-700">{(historyStats.dailyDist / 1000).toFixed(1) || "0.0"}</div>
+          </div>
           <div className="bg-gray-50 p-2 rounded-lg">
             <div className="text-xs text-gray-500">Semana</div>
             <div className="font-bold text-gray-700">{(historyStats.weeklyDist / 1000).toFixed(1)}</div>
@@ -105,7 +109,11 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
       {/* Steps Summary */}
       <div className="mb-4">
         <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🦶 Pasos</h4>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="bg-orange-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Hoy</div>
+            <div className="font-bold text-gray-700">{historyStats.dailySteps?.toLocaleString() || 0}</div>
+          </div>
           <div className="bg-orange-50 p-2 rounded-lg">
             <div className="text-xs text-gray-500">Semana</div>
             <div className="font-bold text-gray-700">{historyStats.weeklySteps?.toLocaleString()}</div>
@@ -124,7 +132,11 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
       {/* Calories Summary */}
       <div>
         <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">🔥 Calorías</h4>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="bg-red-50 p-2 rounded-lg">
+            <div className="text-xs text-gray-500">Hoy</div>
+            <div className="font-bold text-gray-700">{historyStats.dailyCals?.toLocaleString() || 0}</div>
+          </div>
           <div className="bg-red-50 p-2 rounded-lg">
             <div className="text-xs text-gray-500">Semana</div>
             <div className="font-bold text-gray-700">{historyStats.weeklyCals?.toLocaleString()}</div>
@@ -219,12 +231,15 @@ function App() {
     monthlyHoles: 0,
     totalHoles: 0,
     // Add accumulated stats
+    dailyDist: 0,
     weeklyDist: 0,
     monthlyDist: 0,
     totalDist: 0,
+    dailySteps: 0,
     weeklySteps: 0,
     monthlySteps: 0,
     totalSteps: 0,
+    dailyCals: 0,
     weeklyCals: 0,
     monthlyCals: 0,
     totalCals: 0
@@ -241,6 +256,9 @@ function App() {
         const now = new Date();
         if (lastDate.toDateString() !== now.toDateString()) {
           setDailyHoles(0);
+          data.dailyDist = 0;
+          data.dailySteps = 0;
+          data.dailyCals = 0;
           // We could also do weekly/monthly reset logic here if we tracked exact dates
         } else {
           setDailyHoles(data.dailyHoles || 0);
@@ -314,16 +332,19 @@ function App() {
               newH.totalDist = (newH.totalDist || 0) + dMeters;
               newH.monthlyDist = (newH.monthlyDist || 0) + dMeters;
               newH.weeklyDist = (newH.weeklyDist || 0) + dMeters;
+              newH.dailyDist = (newH.dailyDist || 0) + dMeters;
 
               // Steps
               newH.totalSteps = (newH.totalSteps || 0) + dSteps;
               newH.monthlySteps = (newH.monthlySteps || 0) + dSteps;
               newH.weeklySteps = (newH.weeklySteps || 0) + dSteps;
+              newH.dailySteps = (newH.dailySteps || 0) + dSteps;
 
               // Cals
               newH.totalCals = (newH.totalCals || 0) + dCals;
               newH.monthlyCals = (newH.monthlyCals || 0) + dCals;
               newH.weeklyCals = (newH.weeklyCals || 0) + dCals;
+              newH.dailyCals = (newH.dailyCals || 0) + dCals;
 
               localStorage.setItem('golf_activity_history', JSON.stringify(newH));
               return newH;
