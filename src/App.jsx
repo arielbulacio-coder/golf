@@ -603,17 +603,17 @@ function App() {
             </div>
           </div>
           <div className="space-x-4 text-sm font-medium flex items-center overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide mask-fade">
-            <button onClick={() => setView('hole')} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
+            <button onClick={() => { setView('hole'); Analytics.trackEvent('play'); }} className={`hover:text-golf-accent transition ${view === 'hole' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.play')}</button>
             <button onClick={() => { setView('scorecard'); Analytics.trackEvent('scorecard'); }} className={`hover:text-golf-accent transition ${view === 'scorecard' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.scorecard')}</button>
-            <button onClick={() => setView('players')} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
+            <button onClick={() => { setView('players'); Analytics.trackEvent('players'); }} className={`hover:text-golf-accent transition ${view === 'players' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.players')}</button>
             <button onClick={() => { setView('history'); Analytics.trackEvent('history'); }} className={`hover:text-golf-accent transition ${view === 'history' ? 'text-golf-accent' : 'opacity-80'}`}>📂 {t('nav.history')}</button>
-            <button onClick={() => setView('weather')} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
-            <button onClick={() => setView('activity')} className={`hover:text-golf-accent transition ${view === 'activity' ? 'text-golf-accent' : 'opacity-80'}`}>🏃Actividad</button>
+            <button onClick={() => { setView('weather'); Analytics.trackEvent('weather'); }} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
+            <button onClick={() => { setView('activity'); Analytics.trackEvent('activity'); }} className={`hover:text-golf-accent transition ${view === 'activity' ? 'text-golf-accent' : 'opacity-80'}`}>🏃Actividad</button>
             <button onClick={() => { setView('simulator'); Analytics.trackEvent('simulator'); }} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
             <button onClick={() => { setView('training'); Analytics.trackEvent('training'); }} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
-            <button onClick={() => setView('rules')} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
-            <button onClick={() => setView('clubs')} className={`hover:text-golf-accent transition ${view === 'clubs' ? 'text-golf-accent' : 'opacity-80'}`}>🎒 {t('nav.clubs')}</button>
-            <button onClick={() => setView('credits')} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
+            <button onClick={() => { setView('rules'); Analytics.trackEvent('rules'); }} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
+            <button onClick={() => { setView('clubs'); Analytics.trackEvent('clubs'); }} className={`hover:text-golf-accent transition ${view === 'clubs' ? 'text-golf-accent' : 'opacity-80'}`}>🎒 {t('nav.clubs')}</button>
+            <button onClick={() => { setView('credits'); Analytics.trackEvent('credits'); }} className={`hover:text-golf-accent transition ${view === 'credits' ? 'text-golf-accent' : 'opacity-80'}`}>{t('nav.credits')}</button>
 
             <div className="flex space-x-1 ml-4 border-l border-white/20 pl-4">
               {/* ... langs ... */}

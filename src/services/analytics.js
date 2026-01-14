@@ -5,10 +5,17 @@ export const Analytics = {
     KEYS: {
         VISITS: 'total_visits',
         // Events
-        EVENT_SIMULATOR: 'event_simulator',
+        EVENT_PLAY: 'event_play',
         EVENT_SCORECARD: 'event_scorecard',
+        EVENT_PLAYERS: 'event_players',
         EVENT_HISTORY: 'event_history',
+        EVENT_WEATHER: 'event_weather',
+        EVENT_ACTIVITY: 'event_activity',
+        EVENT_SIMULATOR: 'event_simulator',
         EVENT_TRAINING: 'event_training',
+        EVENT_RULES: 'event_rules',
+        EVENT_CLUBS: 'event_clubs',
+        EVENT_CREDITS: 'event_credits',
 
         // Location Keys (Granular for Argentina)
         LOC_AR_BA: 'loc_ar_ba',      // Buenos Aires Province
@@ -61,10 +68,17 @@ export const Analytics = {
 
     async trackEvent(eventName) {
         let key = null;
-        if (eventName === 'simulator') key = this.KEYS.EVENT_SIMULATOR;
+        if (eventName === 'play') key = this.KEYS.EVENT_PLAY;
         if (eventName === 'scorecard') key = this.KEYS.EVENT_SCORECARD;
+        if (eventName === 'players') key = this.KEYS.EVENT_PLAYERS;
         if (eventName === 'history') key = this.KEYS.EVENT_HISTORY;
+        if (eventName === 'weather') key = this.KEYS.EVENT_WEATHER;
+        if (eventName === 'activity') key = this.KEYS.EVENT_ACTIVITY;
+        if (eventName === 'simulator') key = this.KEYS.EVENT_SIMULATOR;
         if (eventName === 'training') key = this.KEYS.EVENT_TRAINING;
+        if (eventName === 'rules') key = this.KEYS.EVENT_RULES;
+        if (eventName === 'clubs') key = this.KEYS.EVENT_CLUBS;
+        if (eventName === 'credits') key = this.KEYS.EVENT_CREDITS;
 
         if (key) {
             try { await this.hit(key); } catch (e) { console.warn("Event track error", e); }
@@ -83,12 +97,23 @@ export const Analytics = {
                 visits,
                 ar, mx, us, es, other,
                 ar_ba, ar_caba, ar_cba, ar_pilar,
-                sim, score, hist, train
+                play, score, players, hist, weather, activity, sim, train, rules, clubs, credits
             ] = await Promise.all([
                 this.get(this.KEYS.VISITS),
                 this.get(this.KEYS.LOC_AR), this.get(this.KEYS.LOC_MX), this.get(this.KEYS.LOC_US), this.get(this.KEYS.LOC_ES), this.get(this.KEYS.LOC_OTHER),
                 this.get(this.KEYS.LOC_AR_BA), this.get(this.KEYS.LOC_AR_CABA), this.get(this.KEYS.LOC_AR_CBA), this.get(this.KEYS.LOC_AR_PILAR),
-                this.get(this.KEYS.EVENT_SIMULATOR), this.get(this.KEYS.EVENT_SCORECARD), this.get(this.KEYS.EVENT_HISTORY), this.get(this.KEYS.EVENT_TRAINING)
+
+                this.get(this.KEYS.EVENT_PLAY),
+                this.get(this.KEYS.EVENT_SCORECARD),
+                this.get(this.KEYS.EVENT_PLAYERS),
+                this.get(this.KEYS.EVENT_HISTORY),
+                this.get(this.KEYS.EVENT_WEATHER),
+                this.get(this.KEYS.EVENT_ACTIVITY),
+                this.get(this.KEYS.EVENT_SIMULATOR),
+                this.get(this.KEYS.EVENT_TRAINING),
+                this.get(this.KEYS.EVENT_RULES),
+                this.get(this.KEYS.EVENT_CLUBS),
+                this.get(this.KEYS.EVENT_CREDITS)
             ]);
 
             return {
@@ -105,10 +130,17 @@ export const Analytics = {
                     'Otros 🌍': other
                 },
                 features: {
-                    'Simulador': sim,
+                    'Jugar': play,
                     'Tarjeta': score,
+                    'Jugadores': players,
                     'Historial': hist,
-                    'Entrenamiento': train
+                    'Clima': weather,
+                    'Actividad': activity,
+                    'Simulador': sim,
+                    'Entrenamiento': train,
+                    'Reglas': rules,
+                    'Palos': clubs,
+                    'Créditos': credits
                 }
             };
 
