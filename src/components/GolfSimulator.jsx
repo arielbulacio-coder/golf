@@ -376,9 +376,12 @@ const GolfSimulator = () => {
 
 
                 {/* HUD Overlay - Cleaned up */}
+                <div className="absolute top-4 left-4 text-white/50 text-xs pointer-events-none z-10 font-mono">
+                    v3.8 | Wind: {windSpeed}km/h {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(((windDirection + 22.5) % 360) / 45)]}
+                </div>
                 <div className="absolute top-4 left-4 right-4 flex justify-between text-white z-10 pointer-events-none">
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md">
-                        <div className="text-xl font-bold italic">Caddy 3D <span className="text-xs ml-1 bg-yellow-500 text-black px-1 rounded">v3.6</span></div>
+                        <div className="text-xl font-bold italic">Caddy 3D </div>
                         <div className="text-sm font-bold text-gray-300">Par {holePar} • {holeDist}y</div>
                     </div>
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md text-right">
