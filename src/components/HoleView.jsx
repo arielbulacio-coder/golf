@@ -8,6 +8,127 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
+const HoleNotes = ({ holeNumber }) => {
+    const [notes, setNotes] = useState([]);
+    const [isAdding, setIsAdding] = useState(false);
+    const [newNoteText, setNewNoteText] = useState('');
+    const [editingId, setEditingId] = useState(null);
+    const [editText, setEditText] = useState('');
+
+    useEffect(() => {
+        const allNotes = JSON.parse(localStorage.getItem('golf_notes') || '{}');
+        setNotes(allNotes[holeNumber] || []);
+    }, [holeNumber]);
+
+    const saveNotesToStorage = (updatedNotes) => {
+        const allNotes = JSON.parse(localStorage.getItem('golf_notes') || '{}');
+        allNotes[holeNumber] = updatedNotes;
+        localStorage.setItem('golf_notes', JSON.stringify(allNotes));
+    };
+
+    const handleAddNote = () => {
+        if (!newNoteText.trim()) return;
+        const note = {
+            id: Date.now(),
+            text: newNoteText,
+            date: new Date().toLocaleDateString()
+        };
+        const updated = [note, ...notes]; // Newest first
+        setNotes(updated);
+        saveNotesToStorage(updated);
+        setNewNoteText('');
+        setIsAdding(false);
+    };
+
+    const handleDelete = (id) => {
+        if (!confirm('¿Eliminar nota?')) return;
+        const updated = notes.filter(n => n.id !== id);
+        setNotes(updated);
+        saveNotesToStorage(updated);
+    };
+
+    const startEdit = (note) => {
+        setEditingId(note.id);
+        setEditText(note.text);
+    };
+
+    const handleUpdate = () => {
+        if (!editText.trim()) return;
+        const updated = notes.map(n => n.id === editingId ? { ...n, text: editText } : n);
+        setNotes(updated);
+        saveNotesToStorage(updated);
+        setEditingId(null);
+        setEditText('');
+    };
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 className="text-gray-700 font-bold uppercase text-xs tracking-wider">📝 Notas del Hoyo</h3>
+                <button
+                    onClick={() => setIsAdding(!isAdding)}
+                    className="text-golf-deep font-bold text-sm bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition"
+                >
+                    {isAdding ? 'Cancelar' : '+ Nueva'}
+                </button>
+            </div>
+
+            {isAdding && (
+                <div className="mb-4 animate-fade-in-down">
+                    <textarea
+                        className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-golf-accent outline-none mb-2"
+                        rows="3"
+                        placeholder="Escribe tu nota aquí..."
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                    ></textarea>
+                    <button
+                        onClick={handleAddNote}
+                        className="w-full bg-golf-deep text-white font-bold py-2 rounded-lg text-sm shadow hover:bg-golf-dark transition"
+                    >
+                        Guardar Nota
+                    </button>
+                </div>
+            )}
+
+            <div className="space-y-3">
+                {notes.length === 0 && !isAdding && (
+                    <p className="text-center text-gray-400 text-sm italic py-2">No hay notas para este hoyo.</p>
+                )}
+                {notes.map(note => (
+                    <div key={note.id} className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 relative group">
+                        {editingId === note.id ? (
+                            <div className="animate-fade-in">
+                                <textarea
+                                    className="w-full border rounded p-2 text-sm mb-2"
+                                    rows="3"
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                ></textarea>
+                                <div className="flex gap-2 justify-end">
+                                    <button onClick={() => setEditingId(null)} className="text-xs text-gray-500 font-bold px-2">Cancelar</button>
+                                    <button onClick={handleUpdate} className="text-xs bg-green-600 text-white px-3 py-1 rounded font-bold">Actualizar</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-gray-800 text-sm whitespace-pre-wrap">{note.text}</p>
+                                <div className="flex justify-between items-end mt-2">
+                                    <span className="text-[10px] text-gray-400">{note.date}</span>
+                                    <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => startEdit(note)} className="text-blue-500 hover:text-blue-700 text-xs font-bold">Editar</button>
+                                        <button onClick={() => handleDelete(note.id)} className="text-red-400 hover:text-red-600 text-xs font-bold">Borrar</button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores, weather }) => {
     const { t } = useTranslation();
     const [userLocation, setUserLocation] = useState(null);
@@ -233,6 +354,9 @@ const HoleView = ({ hole, onNextHole, onPrevHole, onUpdateScore, players, scores
                     ))}
                 </div>
             </div>
+
+            {/* Notes Section */}
+            <HoleNotes holeNumber={hole.number} />
 
             {/* Spacer for content below sticky nav if needed */}
             <div className="flex-grow"></div>
