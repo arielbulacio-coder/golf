@@ -7,7 +7,8 @@ const PlayersManager = ({ onSelectPlayer, scoringType, onSetScoringType, onPlaye
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerHandicap, setNewPlayerHandicap] = useState('');
     const [status, setStatus] = useState('');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    // Use relative path by default correctly proxied by Nginx
+    const API_URL = import.meta.env.VITE_API_URL || '';
 
     useEffect(() => {
         if (playersList) {
