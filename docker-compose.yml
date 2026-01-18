@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  golf-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: golf_backend
+    restart: always
+    volumes:
+      - golf_data:/app/data
+    networks:
+      - default
+      - web
+
+  golf-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: golf_frontend
+    restart: always
+    networks:
+      - default
+      - web
+
+networks:
+  web:
+    external: true
+
+volumes:
+  golf_data:
