@@ -16,8 +16,8 @@ app.use(bodyParser.json());
 
 // Serve static files from the React app
 // Allow serving from root AND from /golf/ path for compatibility
-app.use(express.static(path.join(__dirname, '../dist')));
-app.use('/golf', express.static(path.join(__dirname, '../dist')));
+// app.use(express.static(path.join(__dirname, '../dist')));
+// app.use('/golf', express.static(path.join(__dirname, '../dist')));
 
 // Get all holes
 app.get('/api/holes', (req, res) => {
@@ -171,9 +171,9 @@ app.get('/api/weather', async (req, res) => {
 
 // Catch all handles any fallback for SPA routing
 // Using Regex for Express 5 compatibility
-app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+// app.get(/.*/, (req, res) => {
+//     res.sendFile(path.join(__dirname, '../dist/index.html'));
+// });
 
 import https from 'https';
 import fs from 'fs';
