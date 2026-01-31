@@ -11,6 +11,7 @@ import GolfRules from './components/GolfRules';
 import GolfClubs from './components/GolfClubs';
 import GolfSimulator from './components/GolfSimulator';
 import TrainingView from './components/TrainingView';
+import ARModule from './components/ARModule';
 
 import { Analytics } from './services/analytics';
 import { registerSW } from 'virtual:pwa-register';
@@ -610,6 +611,7 @@ function App() {
             <button onClick={() => { setView('weather'); Analytics.trackEvent('weather'); }} className={`hover:text-golf-accent transition ${view === 'weather' ? 'text-golf-accent' : 'opacity-80'}`}>☀️ {t('weather.current')}</button>
             <button onClick={() => { setView('activity'); Analytics.trackEvent('activity'); }} className={`hover:text-golf-accent transition ${view === 'activity' ? 'text-golf-accent' : 'opacity-80'}`}>🏃Actividad</button>
             <button onClick={() => { setView('simulator'); Analytics.trackEvent('simulator'); }} className={`hover:text-golf-accent transition ${view === 'simulator' ? 'text-golf-accent' : 'opacity-80'}`}>🎮 {t('nav.simulator')}</button>
+            <button onClick={() => { setView('ar'); Analytics.trackEvent('ar'); }} className={`hover:text-golf-accent transition ${view === 'ar' ? 'text-golf-accent' : 'opacity-80'}`}>🥽 {t('nav.ar')}</button>
             <button onClick={() => { setView('training'); Analytics.trackEvent('training'); }} className={`hover:text-golf-accent transition ${view === 'training' ? 'text-golf-accent' : 'opacity-80'}`}>🎯 {t('training.title')}</button>
             <button onClick={() => { setView('rules'); Analytics.trackEvent('rules'); }} className={`hover:text-golf-accent transition ${view === 'rules' ? 'text-golf-accent' : 'opacity-80'}`}>📜 {t('nav.rules')}</button>
             <button onClick={() => { setView('clubs'); Analytics.trackEvent('clubs'); }} className={`hover:text-golf-accent transition ${view === 'clubs' ? 'text-golf-accent' : 'opacity-80'}`}>🎒 {t('nav.clubs')}</button>
@@ -698,6 +700,7 @@ function App() {
         {view === 'clubs' && <GolfClubs />}
         {view === 'simulator' && <GolfSimulator />}
         {view === 'training' && <TrainingView />}
+        {view === 'ar' && <ARModule />}
 
         {/* ... other views ... */}
 

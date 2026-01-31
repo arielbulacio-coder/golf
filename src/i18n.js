@@ -13,7 +13,15 @@ const resources = {
                 simulator: "Simulador",
                 credits: "Créditos",
                 players: "Jugadores",
-                history: "Historial"
+                history: "Historial",
+                ar: "Realidad Aumentada"
+            },
+            ar: {
+                title: "Caddy Realidad Aumentada",
+                viewInSpace: "Ver en tu espacio",
+                ball: "Pelota de Golf",
+                club: "Palo de Golf",
+                hole: "Hoyo Virtual"
             },
             history: {
                 title: "Historial de Partidas",
@@ -113,7 +121,15 @@ const resources = {
                 clubs: "Clubs",
                 simulator: "Simulator",
                 credits: "Credits",
-                players: "Players"
+                players: "Players",
+                ar: "Augmented Reality"
+            },
+            ar: {
+                title: "AR Caddy",
+                viewInSpace: "View in your space",
+                ball: "Golf Ball",
+                club: "Golf Club",
+                hole: "Virtual Hole"
             },
             hole: {
                 title: "Hole",
