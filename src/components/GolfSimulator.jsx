@@ -381,7 +381,7 @@ const GolfSimulator = ({ weather }) => {
 
                 {/* HUD Overlay - Cleaned up */}
                 <div className="absolute top-4 left-4 text-white/50 text-xs pointer-events-none z-10 font-mono">
-                    v4.0 | Wind: {windSpeed}km/h {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(((windDirection + 22.5) % 360) / 45)]}
+                    v6.0 | Wind: {windSpeed}km/h {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(((windDirection + 22.5) % 360) / 45)]}
                 </div>
                 <div className="absolute top-4 left-4 right-4 flex justify-between text-white z-10 pointer-events-none">
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md">
