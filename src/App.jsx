@@ -163,7 +163,7 @@ const ActivityView = ({ stats, dailyHoles, historyStats }) => (
 );
 
 function App() {
-  const APP_VERSION = 'v3.9';
+  const APP_VERSION = 'v4.0';
 
   // PWA Auto-Update Logic - AGGRESSIVE
   useEffect(() => {

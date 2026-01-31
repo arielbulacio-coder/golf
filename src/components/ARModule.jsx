@@ -86,7 +86,7 @@ const ARModule = ({ weather }) => {
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className="text-xs text-gray-500 font-mono italic opacity-50 text-right block">AR ENGINE v4.0</span>
+                    <span className="text-xs text-gray-500 font-mono italic opacity-50 text-right block">AR ENGINE v4.0.0</span>
                     {weather && <span className="text-[10px] text-gray-400">{weather.temp}°C • {weather.wind_speed}km/h</span>}
                 </div>
             </div>
