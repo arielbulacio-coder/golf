@@ -1,28 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * ARModule v5.0 - Ultra Compatible & Robust Edition
+ * Features:
+ * 1. Safe Script Loading with timeout
+ * 2. Proper path handling for GitHub Pages
+ * 3. Base64 Fallback support (omitted for size, using robust paths)
+ */
 const ARModule = ({ weather }) => {
     const { t } = useTranslation();
     const [selectedModel, setSelectedModel] = useState('ball');
-    const [scriptLoaded, setScriptLoaded] = useState(false);
-    const [loadError, setLoadError] = useState(false);
+    const [scriptStatus, setScriptStatus] = useState('loading'); // loading, ready, error
+    const [modelLoading, setModelLoading] = useState(true);
 
-    // Local models for instant loading
+    // GitHub Pages path helper
+    const getAssetPath = (path) => {
+        const isGH = window.location.hostname.includes('github.io');
+        const base = isGH ? '/golf' : '';
+        return `${base}${path.startsWith('.') ? path.substring(1) : path}`;
+    };
+
     const models = {
         ball: {
-            url: './models/ball.glb',
+            url: getAssetPath('./models/ball.glb'),
             name: t('ar.ball'),
-            description: 'Esfera profesional de alta precisión para práctica de alineamiento.'
+            description: 'Esfera profesional de alta precisión.'
         },
         club: {
-            url: './models/club.glb',
+            url: getAssetPath('./models/club.glb'),
             name: t('ar.club'),
-            description: 'Análisis de diseño y ergonomía en 3D.'
+            description: 'Análisis de diseño y ergonomía.'
         },
         hole: {
-            url: './models/hole.glb',
+            url: getAssetPath('./models/hole.glb'),
             name: t('ar.hole'),
-            description: 'Punto de referencia visual para entrenamiento de putt.'
+            description: 'Referencia visual para entrenamiento.'
         }
     };
 
@@ -30,146 +43,150 @@ const ARModule = ({ weather }) => {
         const scriptId = 'model-viewer-script';
         let script = document.getElementById(scriptId);
 
-        const checkLoaded = () => {
-            if (window.customElements && window.customElements.get('model-viewer')) {
-                setScriptLoaded(true);
-                return true;
-            }
-            return false;
+        const onScriptLoad = () => {
+            console.log("AR Engine: Script Loaded");
+            setScriptStatus('ready');
         };
 
-        if (checkLoaded()) return;
+        const onScriptError = () => {
+            console.error("AR Engine: Script Load Error");
+            setScriptStatus('error');
+        };
 
         if (!script) {
             script = document.createElement('script');
             script.id = scriptId;
             script.type = 'module';
+            // Use a specific version for better compatibility
             script.src = 'https://unpkg.com/@google/model-viewer@3.4.0/dist/model-viewer.min.js';
             script.async = true;
-
-            script.onload = () => {
-                setTimeout(checkLoaded, 500);
-            };
-
-            script.onerror = () => {
-                setLoadError(true);
-            };
-
+            script.onload = onScriptLoad;
+            script.onerror = onScriptError;
             document.head.appendChild(script);
         } else {
-            const interval = setInterval(() => {
-                if (checkLoaded()) clearInterval(interval);
-            }, 500);
-            return () => clearInterval(interval);
+            // Script already exists, check if custom element is defined
+            if (window.customElements && window.customElements.get('model-viewer')) {
+                setScriptStatus('ready');
+            } else {
+                script.addEventListener('load', onScriptLoad);
+                script.addEventListener('error', onScriptError);
+            }
         }
+
+        // Safety timeout for UI
+        const timer = setTimeout(() => {
+            if (window.customElements && window.customElements.get('model-viewer')) {
+                setScriptStatus('ready');
+            }
+        }, 3000);
+
+        return () => clearTimeout(timer);
     }, []);
 
-    if (loadError) {
+    const handleModelLoad = () => {
+        console.log("AR Engine: Model Loaded");
+        setModelLoading(false);
+    };
+
+    if (scriptStatus === 'error') {
         return (
-            <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white p-8 text-center text-sm">
-                <div className="text-4xl mb-4">⚠️</div>
-                <h2 className="text-xl font-bold mb-2">Error de Motor</h2>
-                <p className="text-gray-400 mb-4">No se pudo inicializar el sistema de Realidad Aumentada.</p>
-                <button onClick={() => window.location.reload()} className="bg-elegant-gold text-golf-deep font-black px-6 py-2 rounded-full text-xs uppercase">Reintentar</button>
+            <div className="flex flex-col items-center justify-center h-full bg-gray-900 text-white p-8 text-center">
+                <div className="text-4xl mb-4">🚫</div>
+                <h3 className="text-lg font-bold">Error de Motor</h3>
+                <p className="text-xs text-gray-400 mt-2 italic">No se pudo cargar el motor WebXR.</p>
+                <button onClick={() => window.location.reload()} className="mt-6 bg-white text-black px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest">Reintentar</button>
             </div>
         );
     }
 
     return (
-        <div className="animate-fade-in-up flex flex-col h-full bg-gradient-to-b from-gray-900 to-black text-white rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-            {/* Header */}
-            <div className="p-4 bg-white/5 backdrop-blur-md border-b border-white/10 flex justify-between items-center">
+        <div className="animate-fade-in-up flex flex-col h-full bg-black text-white rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+            {/* Minimal Header */}
+            <div className="p-4 bg-zinc-900/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-black bg-gradient-to-r from-elegant-gold to-yellow-200 bg-clip-text text-transparent italic leading-tight">
-                        {t('ar.title')}
+                    <h2 className="text-xl font-black tracking-tighter text-white uppercase italic">
+                        {t('ar.title')} <span className="text-elegant-gold">Pro</span>
                     </h2>
-                    <div className="flex items-center gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${scriptLoaded ? 'bg-green-500 animate-pulse' : 'bg-yellow-500 animate-bounce'}`}></span>
-                        <p className="text-[8px] font-bold text-green-400 uppercase tracking-widest">
-                            {scriptLoaded ? 'SISTEMA READY' : 'CONECTANDO...'}
-                        </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${scriptStatus === 'ready' ? 'bg-green-500 animate-pulse' : 'bg-orange-500 animate-bounce'}`}></div>
+                        <span className="text-[7px] font-black tracking-[0.2em] text-zinc-500 uppercase">
+                            {scriptStatus === 'ready' ? 'Engine Ready' : 'Initializing Engine'}
+                        </span>
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className="text-[10px] text-gray-500 font-mono italic opacity-50 block leading-none mb-1">AR ENGINE v4.2</span>
-                    {weather && <span className="text-[9px] text-gray-400 leading-none">{weather.temp}° • {weather.wind_speed}km/h</span>}
+                    <div className="text-[9px] font-mono text-zinc-600">v5.0.0-Stable</div>
+                    {weather && <div className="text-[8px] text-zinc-400 mt-0.5">{weather.temp}° • {weather.wind_speed}km/h</div>}
                 </div>
             </div>
 
-            {/* 3D Viewer Area */}
-            <div className="relative flex-grow bg-black/40 group overflow-hidden">
-                {!scriptLoaded ? (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-900">
-                        <div className="flex flex-col items-center">
-                            <div className="w-10 h-10 border-2 border-elegant-gold border-t-transparent rounded-full animate-spin mb-3"></div>
-                            <p className="text-elegant-gold font-bold text-[9px] tracking-[0.3em] animate-pulse">BOOTING ENGINE...</p>
-                        </div>
+            {/* Main Stage */}
+            <div className="relative flex-grow bg-radial-gradient from-zinc-800 to-black overflow-hidden group">
+                {/* Loader Overlay */}
+                {(scriptStatus === 'loading' || modelLoading) && (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-500">
+                        <div className="w-8 h-8 border-2 border-elegant-gold/30 border-t-elegant-gold rounded-full animate-spin"></div>
+                        <p className="mt-4 text-[8px] font-black tracking-[0.4em] text-elegant-gold animate-pulse uppercase">
+                            {scriptStatus === 'loading' ? 'Sincronizando Motor' : 'Procesando Modelo 3D'}
+                        </p>
                     </div>
-                ) : (
+                )}
+
+                {scriptStatus === 'ready' && (
                     <model-viewer
                         key={selectedModel}
                         src={models[selectedModel].url}
-                        alt="Golf Equipment 3D Model"
+                        alt="Golf Equipment 3D"
                         ar
                         ar-modes="webxr scene-viewer quick-look"
                         camera-controls
                         auto-rotate
-                        shadow-intensity="1.5"
-                        曝光="1.2"
-                        environment-image="neutral"
+                        shadow-intensity="1"
                         loading="eager"
-                        style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
+                        poster={getAssetPath('./icon.png')}
+                        onLoad={handleModelLoad}
+                        style={{ width: '100%', height: '100%', '--poster-color': 'transparent' }}
                     >
-                        <button slot="ar-button" className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-elegant-gold to-yellow-500 text-golf-deep font-black px-8 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-white/20 whitespace-nowrap text-xs">
-                            <span className="text-xl">🥽</span> {t('ar.viewInSpace').toUpperCase()}
+                        <button slot="ar-button" className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-elegant-gold text-black font-black px-8 py-3.5 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] flex items-center gap-2 translate-z-10 active:scale-95 transition-all text-xs border border-white/20">
+                            <span>🥽</span> {t('ar.viewInSpace').toUpperCase()}
                         </button>
 
-                        <div slot="progress-bar" className="absolute inset-0 flex items-center justify-center bg-gray-900 z-20">
-                            <div className="flex flex-col items-center text-center p-6">
-                                <div className="w-12 h-12 border-2 border-elegant-gold border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <p className="text-elegant-gold font-bold tracking-[0.2em] animate-pulse text-[10px] uppercase">Cargando Activo Local...</p>
-                                <p className="text-gray-500 text-[8px] mt-2 uppercase tracking-widest">{models[selectedModel].name}</p>
-                            </div>
-                        </div>
+                        <div slot="progress-bar" className="hidden"></div>
                     </model-viewer>
                 )}
 
-                {/* Floating Info Card */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between pointer-events-none">
-                    <div className="bg-black/60 backdrop-blur-xl p-3 rounded-xl border border-white/10 max-w-[150px]">
-                        <h3 className="font-black text-elegant-gold text-[10px] mb-0.5 uppercase tracking-tighter">{models[selectedModel].name}</h3>
-                        <p className="text-[8px] text-gray-400 leading-tight line-clamp-2">{models[selectedModel].description}</p>
+                {/* Floating Info */}
+                <div className="absolute top-4 left-4 right-4 pointer-events-none z-10">
+                    <div className="bg-white/5 backdrop-blur-md p-3 rounded-xl border border-white/10 inline-block">
+                        <h4 className="text-[10px] font-black text-elegant-gold uppercase tracking-widest">{models[selectedModel].name}</h4>
+                        <p className="text-[8px] text-zinc-400 mt-1 leading-tight max-w-[120px]">{models[selectedModel].description}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Model Selector Bar */}
-            <div className="p-4 bg-black/80 backdrop-blur-2xl border-t border-white/10">
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
+            {/* Footer Control Bar */}
+            <div className="p-4 bg-zinc-900 border-t border-white/5">
+                <div className="flex justify-center gap-4">
                     {Object.entries(models).map(([key, model]) => (
                         <button
                             key={key}
-                            onClick={() => setSelectedModel(key)}
-                            className={`flex-shrink-0 relative transition-all duration-300 ${selectedModel === key ? 'scale-105' : 'opacity-30 hover:opacity-70'
+                            onClick={() => {
+                                setModelLoading(true);
+                                setSelectedModel(key);
+                            }}
+                            className={`flex flex-col items-center transition-all duration-300 ${selectedModel === key ? 'scale-110' : 'opacity-20 hover:opacity-100 grayscale'
                                 }`}
                         >
-                            <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl mb-1 border transition-all ${selectedModel === key
-                                    ? 'bg-elegant-gold border-white shadow-lg'
-                                    : 'bg-white/5 border-white/10'
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-1 border-2 transition-colors ${selectedModel === key ? 'bg-elegant-gold border-white' : 'bg-zinc-800 border-zinc-700'
                                 }`}>
                                 {key === 'ball' ? '⛳' : key === 'club' ? '🏌️' : '🕳️'}
                             </div>
-                            <div className={`text-[8px] font-black text-center uppercase tracking-tighter ${selectedModel === key ? 'text-elegant-gold' : 'text-gray-500'}`}>
+                            <span className="text-[7px] font-black uppercase tracking-tighter text-zinc-500">
                                 {model.name.split(' ')[0]}
-                            </div>
+                            </span>
                         </button>
                     ))}
                 </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-elegant-gold p-0.5 text-[7px] font-black text-golf-deep text-center tracking-[0.4em] uppercase">
-                Premium WebXR Local Assets
             </div>
         </div>
     );
