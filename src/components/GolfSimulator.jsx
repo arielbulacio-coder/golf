@@ -143,8 +143,12 @@ function Green({ position }) {
     );
 }
 
-const GolfSimulator = () => {
+const GolfSimulator = ({ weather }) => {
     const { t } = useTranslation();
+
+    // Weather Data
+    const windSpeed = weather ? weather.wind_speed : 10;
+    const windDirection = weather ? weather.wind_dir : 0;
 
     // UI State
     const [uiSync, setUiSync] = useState(0);
@@ -377,7 +381,7 @@ const GolfSimulator = () => {
 
                 {/* HUD Overlay - Cleaned up */}
                 <div className="absolute top-4 left-4 text-white/50 text-xs pointer-events-none z-10 font-mono">
-                    v3.8 | Wind: {windSpeed}km/h {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(((windDirection + 22.5) % 360) / 45)]}
+                    v3.9 | Wind: {windSpeed}km/h {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(((windDirection + 22.5) % 360) / 45)]}
                 </div>
                 <div className="absolute top-4 left-4 right-4 flex justify-between text-white z-10 pointer-events-none">
                     <div className="bg-black/40 p-3 rounded-xl backdrop-blur-md">

@@ -698,9 +698,9 @@ function App() {
 
         {view === 'rules' && <GolfRules />}
         {view === 'clubs' && <GolfClubs />}
-        {view === 'simulator' && <GolfSimulator />}
+        {view === 'simulator' && <GolfSimulator weather={weatherData} />}
         {view === 'training' && <TrainingView />}
-        {view === 'ar' && <ARModule />}
+        {view === 'ar' && <ARModule weather={weatherData} />}
 
         {/* ... other views ... */}
 
