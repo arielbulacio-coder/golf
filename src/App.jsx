@@ -192,14 +192,14 @@ function App() {
       });
     }
 
-    // 3. Reload logic
-    let refreshing = false;
-    navigator.serviceWorker?.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
+    // 3. Reload logic - DISABLED FOR AR COMPATIBILITY
+    // let refreshing = false;
+    // navigator.serviceWorker?.addEventListener('controllerchange', () => {
+    //   if (!refreshing) {
+    //     refreshing = true;
+    //     window.location.reload();
+    //   }
+    // });
 
     return () => { };
   }, []);
