@@ -13,6 +13,7 @@ export const Analytics = {
         EVENT_ACTIVITY: 'event_activity',
         EVENT_SIMULATOR: 'event_simulator',
         EVENT_TRAINING: 'event_training',
+        EVENT_AR: 'event_ar',
         EVENT_RULES: 'event_rules',
         EVENT_CLUBS: 'event_clubs',
         EVENT_CREDITS: 'event_credits',
@@ -79,6 +80,7 @@ export const Analytics = {
         if (eventName === 'rules') key = this.KEYS.EVENT_RULES;
         if (eventName === 'clubs') key = this.KEYS.EVENT_CLUBS;
         if (eventName === 'credits') key = this.KEYS.EVENT_CREDITS;
+        if (eventName === 'ar') key = this.KEYS.EVENT_AR;
 
         if (key) {
             try { await this.hit(key); } catch (e) { console.warn("Event track error", e); }

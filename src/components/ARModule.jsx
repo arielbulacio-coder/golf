@@ -4,6 +4,21 @@ import { useTranslation } from 'react-i18next';
 const ARModule = () => {
     const { t } = useTranslation();
     const [selectedModel, setSelectedModel] = useState('ball');
+    const [scriptLoaded, setScriptLoaded] = useState(false);
+
+    // Dynamically load model-viewer to avoid conflicts with Three.js on main app load
+    React.useEffect(() => {
+        if (!document.getElementById('model-viewer-script')) {
+            const script = document.createElement('script');
+            script.id = 'model-viewer-script';
+            script.type = 'module';
+            script.src = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
+            script.onload = () => setScriptLoaded(true);
+            document.head.appendChild(script);
+        } else {
+            setScriptLoaded(true);
+        }
+    }, []);
 
     const models = {
         ball: {
@@ -93,8 +108,8 @@ const ARModule = () => {
                                 }`}
                         >
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-2 border-2 transition-all duration-500 ${selectedModel === key
-                                    ? 'bg-elegant-gold border-white shadow-[0_0_20px_rgba(234,179,8,0.3)]'
-                                    : 'bg-white/5 border-white/10'
+                                ? 'bg-elegant-gold border-white shadow-[0_0_20px_rgba(234,179,8,0.3)]'
+                                : 'bg-white/5 border-white/10'
                                 }`}>
                                 {key === 'ball' ? '⛳' : key === 'club' ? '🏌️' : '🕳️'}
                             </div>
