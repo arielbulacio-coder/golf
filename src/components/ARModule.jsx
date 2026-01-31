@@ -7,20 +7,20 @@ const ARModule = ({ weather }) => {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
 
-    // Dynamic models with reliable URLs
+    // Local models for instant loading
     const models = {
         ball: {
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MetalRoughSpheres/glTF-Binary/MetalRoughSpheres.glb',
+            url: './models/ball.glb',
             name: t('ar.ball'),
             description: 'Esfera profesional de alta precisión para práctica de alineamiento.'
         },
         club: {
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb', // Reliably small model for testing
+            url: './models/club.glb',
             name: t('ar.club'),
             description: 'Análisis de diseño y ergonomía en 3D.'
         },
         hole: {
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Lantern/glTF-Binary/Lantern.glb',
+            url: './models/hole.glb',
             name: t('ar.hole'),
             description: 'Punto de referencia visual para entrenamiento de putt.'
         }
@@ -91,7 +91,7 @@ const ARModule = ({ weather }) => {
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className="text-[10px] text-gray-500 font-mono italic opacity-50 block leading-none mb-1">AR ENGINE v4.1</span>
+                    <span className="text-[10px] text-gray-500 font-mono italic opacity-50 block leading-none mb-1">AR ENGINE v4.2</span>
                     {weather && <span className="text-[9px] text-gray-400 leading-none">{weather.temp}° • {weather.wind_speed}km/h</span>}
                 </div>
             </div>
@@ -120,14 +120,14 @@ const ARModule = ({ weather }) => {
                         loading="eager"
                         style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
                     >
-                        <button slot="ar-button" className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-elegant-gold to-yellow-500 text-golf-deep font-black px-8 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-white/20 whitespace-nowrap text-xs">
-                            <span className="text-lg">🥽</span> {t('ar.viewInSpace').toUpperCase()}
+                        <button slot="ar-button" className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-elegant-gold to-yellow-500 text-golf-deep font-black px-8 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-white/20 whitespace-nowrap text-xs">
+                            <span className="text-xl">🥽</span> {t('ar.viewInSpace').toUpperCase()}
                         </button>
 
                         <div slot="progress-bar" className="absolute inset-0 flex items-center justify-center bg-gray-900 z-20">
                             <div className="flex flex-col items-center text-center p-6">
                                 <div className="w-12 h-12 border-2 border-elegant-gold border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <p className="text-elegant-gold font-bold tracking-[0.2em] animate-pulse text-[10px] uppercase">Descargando Modelo 3D...</p>
+                                <p className="text-elegant-gold font-bold tracking-[0.2em] animate-pulse text-[10px] uppercase">Cargando Activo Local...</p>
                                 <p className="text-gray-500 text-[8px] mt-2 uppercase tracking-widest">{models[selectedModel].name}</p>
                             </div>
                         </div>
@@ -169,7 +169,7 @@ const ARModule = ({ weather }) => {
 
             {/* Footer */}
             <div className="bg-elegant-gold p-0.5 text-[7px] font-black text-golf-deep text-center tracking-[0.4em] uppercase">
-                Premium WebXR Integration
+                Premium WebXR Local Assets
             </div>
         </div>
     );
